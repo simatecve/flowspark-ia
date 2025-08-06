@@ -225,45 +225,48 @@ export type Database = {
       }
       leads: {
         Row: {
-          column_id: string
+          column_id: string | null
           company: string | null
           created_at: string
           email: string | null
           id: string
+          instancia: string | null
           name: string
           notes: string | null
           phone: string | null
           position: number
           updated_at: string
-          user_id: string
+          user_id: string | null
           value: number | null
         }
         Insert: {
-          column_id: string
+          column_id?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
           id?: string
+          instancia?: string | null
           name: string
           notes?: string | null
           phone?: string | null
           position?: number
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           value?: number | null
         }
         Update: {
-          column_id?: string
+          column_id?: string | null
           company?: string | null
           created_at?: string
           email?: string | null
           id?: string
+          instancia?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
           position?: number
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           value?: number | null
         }
         Relationships: [

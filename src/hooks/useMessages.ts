@@ -3,12 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useWebhookSender } from '@/hooks/useWebhookSender';
 import type { Message, CreateMessageData, SendMessageToConversationData } from '@/types/messages';
 
 export const useMessages = (conversationId: string | null) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { sendWebhook } = useWebhookSender();
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['messages', conversationId],
@@ -50,6 +52,19 @@ export const useMessages = (conversationId: string | null) => {
         throw new Error('Error obteniendo información de la conversación');
       }
 
+      // Primero ejecutar el webhook
+      const webhookSuccess = await sendWebhook({
+        instance_name: 'web_client',
+        whatsapp_number: conversation.whatsapp_number,
+        message: messageData.message,
+        attachment_url: messageData.attachment_url,
+      });
+
+      if (!webhookSuccess) {
+        throw new Error('Error al ejecutar el webhook');
+      }
+
+      // Si el webhook fue exitoso, guardar en la base de datos
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -60,8 +75,8 @@ export const useMessages = (conversationId: string | null) => {
           direction: 'outgoing',
           is_bot: false,
           attachment_url: messageData.attachment_url,
-          message_type: messageData.message_type || 'text',
-          user_id: conversation.user_id || (user ? user.id : null), // Use conversation's user_id or current user
+          message_type: messageData.message_type || (messageData.attachment_url ? 'image' : 'text'),
+          user_id: conversation.user_id || (user ? user.id : null),
         })
         .select()
         .single();
@@ -76,6 +91,10 @@ export const useMessages = (conversationId: string | null) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      toast({
+        title: "Mensaje enviado",
+        description: "El mensaje se ha enviado correctamente.",
+      });
     },
     onError: (error: any) => {
       console.error('Error sending message:', error);
@@ -92,11 +111,24 @@ export const useMessages = (conversationId: string | null) => {
     mutationFn: async (messageData: CreateMessageData) => {
       console.log('Creating message:', messageData);
 
+      // Ejecutar webhook primero
+      const webhookSuccess = await sendWebhook({
+        instance_name: messageData.instance_name,
+        whatsapp_number: messageData.whatsapp_number,
+        message: messageData.message,
+        attachment_url: messageData.attachment_url,
+      });
+
+      if (!webhookSuccess) {
+        throw new Error('Error al ejecutar el webhook');
+      }
+
+      // Si el webhook fue exitoso, guardar en la base de datos
       const { data, error } = await supabase
         .from('messages')
         .insert({
           ...messageData,
-          user_id: user ? user.id : null, // Allow null user_id for public messages
+          user_id: user ? user.id : null,
         })
         .select()
         .single();
@@ -111,6 +143,10 @@ export const useMessages = (conversationId: string | null) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages'] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      toast({
+        title: "Mensaje enviado",
+        description: "El mensaje se ha enviado correctamente.",
+      });
     },
     onError: (error: any) => {
       console.error('Error creating message:', error);

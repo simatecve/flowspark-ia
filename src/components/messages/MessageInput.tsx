@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
-import { Send, Paperclip, Smile } from 'lucide-react';
+import { Send, Smile, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { FileUploadButton } from './FileUploadButton';
 
 // Dynamic import for emoji picker to avoid build issues
 const EmojiPicker = React.lazy(() => 
@@ -41,42 +41,39 @@ export const MessageInput = ({ onSendMessage, disabled }: MessageInputProps) => 
     setShowEmojiPicker(false);
   };
 
+  const handleFileUploaded = (url: string) => {
+    setAttachmentUrl(url);
+  };
+
+  const removeAttachment = () => {
+    setAttachmentUrl('');
+  };
+
   return (
     <div className="border-t bg-background p-4">
       {attachmentUrl && (
         <div className="mb-2 p-2 bg-muted rounded-lg">
-          <p className="text-sm text-muted-foreground">Archivo adjunto:</p>
-          <p className="text-sm truncate">{attachmentUrl}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setAttachmentUrl('')}
-            className="mt-1"
-          >
-            Remover
-          </Button>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">Archivo adjunto:</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={removeAttachment}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+          <p className="text-sm truncate">{attachmentUrl.split('/').pop()}</p>
         </div>
       )}
       
       <div className="flex items-end space-x-2">
         <div className="flex space-x-1">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={disabled}>
-                <Paperclip className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Adjuntar archivo</p>
-                <Input
-                  placeholder="URL del archivo (imagen, video, audio, documento)"
-                  value={attachmentUrl}
-                  onChange={(e) => setAttachmentUrl(e.target.value)}
-                />
-              </div>
-            </PopoverContent>
-          </Popover>
+          <FileUploadButton
+            onFileUploaded={handleFileUploaded}
+            disabled={disabled}
+          />
 
           <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
             <PopoverTrigger asChild>
