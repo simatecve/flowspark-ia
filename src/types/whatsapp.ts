@@ -12,7 +12,6 @@ export interface WhatsAppConnection {
 
 export interface Webhook {
   id: string;
-  user_id: string;
   name: string;
   url: string;
   function_description?: string;

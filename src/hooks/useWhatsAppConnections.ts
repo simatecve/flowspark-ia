@@ -30,11 +30,11 @@ export const useWhatsAppConnections = () => {
     enabled: !!user,
   });
 
-  // Obtener webhooks (incluyendo los del sistema)
+  // Obtener webhooks (ahora disponibles para todos los usuarios autenticados)
   const { data: webhooks, isLoading: isLoadingWebhooks } = useQuery({
     queryKey: ['webhooks'],
     queryFn: async () => {
-      console.log('Fetching webhooks for user:', user?.id);
+      console.log('Fetching webhooks');
       const { data, error } = await supabase
         .from('webhooks')
         .select('*')
