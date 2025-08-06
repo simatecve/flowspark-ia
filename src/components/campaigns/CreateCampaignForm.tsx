@@ -9,12 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useMassCampaigns } from '@/hooks/useMassCampaigns';
 import { useWhatsAppConnections } from '@/hooks/useWhatsAppConnections';
+import { useContactLists } from '@/hooks/useContactLists';
 import { FileUpload, AttachmentFile } from './FileUpload';
 
 export const CreateCampaignForm = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [whatsappConnectionName, setWhatsappConnectionName] = useState('');
+  const [contactListId, setContactListId] = useState('');
   const [campaignMessage, setCampaignMessage] = useState('');
   const [editWithAi, setEditWithAi] = useState(false);
   const [minDelay, setMinDelay] = useState(1000);
@@ -22,12 +24,13 @@ export const CreateCampaignForm = () => {
   const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
 
   const { connections, isLoadingConnections } = useWhatsAppConnections();
+  const { contactLists, isLoadingContactLists } = useContactLists();
   const { createCampaign, isCreatingCampaign } = useMassCampaigns();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !whatsappConnectionName || !campaignMessage.trim()) {
+    if (!name.trim() || !whatsappConnectionName || !campaignMessage.trim() || !contactListId) {
       return;
     }
 
@@ -35,6 +38,7 @@ export const CreateCampaignForm = () => {
       name: name.trim(),
       description: description.trim() || undefined,
       whatsapp_connection_name: whatsappConnectionName,
+      contact_list_id: contactListId,
       campaign_message: campaignMessage.trim(),
       edit_with_ai: editWithAi,
       min_delay: minDelay,
@@ -47,6 +51,7 @@ export const CreateCampaignForm = () => {
     setName('');
     setDescription('');
     setWhatsappConnectionName('');
+    setContactListId('');
     setCampaignMessage('');
     setEditWithAi(false);
     setMinDelay(1000);
@@ -98,6 +103,29 @@ export const CreateCampaignForm = () => {
                         style={{ backgroundColor: connection.color }}
                       />
                       {connection.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="contact-list">Lista de contactos</Label>
+            <Select value={contactListId} onValueChange={setContactListId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona una lista de contactos" />
+              </SelectTrigger>
+              <SelectContent>
+                {contactLists?.map((list) => (
+                  <SelectItem key={list.id} value={list.id}>
+                    <div className="flex items-center gap-2">
+                      <span>{list.name}</span>
+                      {list.description && (
+                        <span className="text-xs text-muted-foreground">
+                          - {list.description}
+                        </span>
+                      )}
                     </div>
                   </SelectItem>
                 ))}
@@ -167,7 +195,7 @@ export const CreateCampaignForm = () => {
 
           <Button 
             type="submit" 
-            disabled={isCreatingCampaign || !name.trim() || !whatsappConnectionName || !campaignMessage.trim()}
+            disabled={isCreatingCampaign || !name.trim() || !whatsappConnectionName || !campaignMessage.trim() || !contactListId}
             className="w-full"
           >
             {isCreatingCampaign ? 'Creando...' : 'Crear Campaña'}

@@ -61,11 +61,105 @@ export type Database = {
           },
         ]
       }
+      contact_list_members: {
+        Row: {
+          added_at: string
+          contact_id: string
+          contact_list_id: string
+          id: string
+        }
+        Insert: {
+          added_at?: string
+          contact_id: string
+          contact_list_id: string
+          id?: string
+        }
+        Update: {
+          added_at?: string
+          contact_id?: string
+          contact_list_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_list_members_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_list_members_contact_list_id_fkey"
+            columns: ["contact_list_id"]
+            isOneToOne: false
+            referencedRelation: "contact_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_lists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mass_campaigns: {
         Row: {
           attachment_names: string[] | null
           attachment_urls: string[] | null
           campaign_message: string
+          contact_list_id: string | null
           created_at: string
           description: string | null
           edit_with_ai: boolean
@@ -82,6 +176,7 @@ export type Database = {
           attachment_names?: string[] | null
           attachment_urls?: string[] | null
           campaign_message: string
+          contact_list_id?: string | null
           created_at?: string
           description?: string | null
           edit_with_ai?: boolean
@@ -98,6 +193,7 @@ export type Database = {
           attachment_names?: string[] | null
           attachment_urls?: string[] | null
           campaign_message?: string
+          contact_list_id?: string | null
           created_at?: string
           description?: string | null
           edit_with_ai?: boolean
@@ -110,7 +206,15 @@ export type Database = {
           user_id?: string
           whatsapp_connection_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mass_campaigns_contact_list_id_fkey"
+            columns: ["contact_list_id"]
+            isOneToOne: false
+            referencedRelation: "contact_lists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

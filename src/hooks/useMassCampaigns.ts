@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -73,6 +72,7 @@ export const useMassCampaigns = () => {
           name: campaignData.name,
           description: campaignData.description,
           whatsapp_connection_name: campaignData.whatsapp_connection_name,
+          contact_list_id: campaignData.contact_list_id,
           campaign_message: campaignData.campaign_message,
           edit_with_ai: campaignData.edit_with_ai,
           min_delay: campaignData.min_delay,
