@@ -67,6 +67,23 @@ export const useWhatsAppConnections = () => {
     return data.url;
   };
 
+  // Función para obtener el webhook de eliminar instancia desde la BD
+  const getDeleteInstanceWebhook = async (): Promise<string> => {
+    const { data, error } = await supabase
+      .from('webhooks')
+      .select('url')
+      .eq('name', 'Eliminar Instancia WhatsApp')
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) {
+      console.error('Error fetching delete webhook:', error);
+      throw new Error('No se pudo obtener el webhook para eliminar instancias');
+    }
+
+    return data.url;
+  };
+
   // Crear conexión de WhatsApp
   const createConnectionMutation = useMutation({
     mutationFn: async (connectionData: CreateWhatsAppConnectionData) => {
@@ -156,9 +173,9 @@ export const useWhatsAppConnections = () => {
         throw new Error('No se pudo obtener la información de la conexión');
       }
 
-      // Obtener la URL del webhook desde la base de datos
-      const webhookUrl = await getCreateInstanceWebhook();
-      console.log('Using webhook URL for deletion:', webhookUrl);
+      // Obtener la URL del webhook de eliminar desde la base de datos
+      const webhookUrl = await getDeleteInstanceWebhook();
+      console.log('Using delete webhook URL:', webhookUrl);
 
       // Ejecutar el webhook con los datos de la conexión a eliminar
       const webhookResponse = await fetch(webhookUrl, {
@@ -180,7 +197,7 @@ export const useWhatsAppConnections = () => {
         throw new Error(`Error al ejecutar el webhook: ${webhookResponse.status} - ${errorText}`);
       }
 
-      console.log('Webhook executed successfully, proceeding with database deletion');
+      console.log('Delete webhook executed successfully, proceeding with database deletion');
 
       // Si el webhook fue exitoso, eliminar de la base de datos
       const { error } = await supabase
