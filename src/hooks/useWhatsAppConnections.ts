@@ -140,7 +140,49 @@ export const useWhatsAppConnections = () => {
   // Eliminar conexión
   const deleteConnectionMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (!user) throw new Error('User not authenticated');
+
       console.log('Deleting WhatsApp connection:', id);
+
+      // Primero obtener los datos de la conexión que se va a eliminar
+      const { data: connectionData, error: fetchError } = await supabase
+        .from('whatsapp_connections')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError || !connectionData) {
+        console.error('Error fetching connection data:', fetchError);
+        throw new Error('No se pudo obtener la información de la conexión');
+      }
+
+      // Obtener la URL del webhook desde la base de datos
+      const webhookUrl = await getCreateInstanceWebhook();
+      console.log('Using webhook URL for deletion:', webhookUrl);
+
+      // Ejecutar el webhook con los datos de la conexión a eliminar
+      const webhookResponse = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: connectionData.name,
+          color: connectionData.color,
+          phone_number: connectionData.phone_number,
+          user_id: user.id,
+        }),
+      });
+
+      if (!webhookResponse.ok) {
+        const errorText = await webhookResponse.text();
+        console.error('Webhook error response:', errorText);
+        throw new Error(`Error al ejecutar el webhook: ${webhookResponse.status} - ${errorText}`);
+      }
+
+      console.log('Webhook executed successfully, proceeding with database deletion');
+
+      // Si el webhook fue exitoso, eliminar de la base de datos
       const { error } = await supabase
         .from('whatsapp_connections')
         .delete()
@@ -155,14 +197,14 @@ export const useWhatsAppConnections = () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-connections'] });
       toast({
         title: "Conexión eliminada",
-        description: "La conexión de WhatsApp se ha eliminada correctamente.",
+        description: "La conexión de WhatsApp se ha eliminado correctamente.",
       });
     },
     onError: (error: any) => {
       console.error('Error deleting connection:', error);
       toast({
         title: "Error",
-        description: "Error al eliminar la conexión",
+        description: error.message || "Error al eliminar la conexión",
         variant: "destructive",
       });
     },
