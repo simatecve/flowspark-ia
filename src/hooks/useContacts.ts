@@ -57,6 +57,7 @@ export const useContacts = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['contacts-in-list'] });
       toast({
         title: "¡Contacto creado!",
         description: "El contacto se ha creado correctamente.",
@@ -92,6 +93,7 @@ export const useContacts = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
       queryClient.invalidateQueries({ queryKey: ['contact-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['contacts-in-list'] });
       toast({
         title: "Contacto eliminado",
         description: "El contacto se ha eliminado correctamente.",
@@ -107,10 +109,24 @@ export const useContacts = () => {
     },
   });
 
+  const createContact = (contactData: CreateContactData, callbacks?: {
+    onSuccess?: () => void;
+    onError?: (error: any) => void;
+  }) => {
+    createContactMutation.mutate(contactData, {
+      onSuccess: (data) => {
+        callbacks?.onSuccess?.();
+      },
+      onError: (error) => {
+        callbacks?.onError?.(error);
+      },
+    });
+  };
+
   return {
     contacts,
     isLoadingContacts,
-    createContact: createContactMutation.mutate,
+    createContact,
     isCreatingContact: createContactMutation.isPending,
     deleteContact: deleteContactMutation.mutate,
     isDeletingContact: deleteContactMutation.isPending,

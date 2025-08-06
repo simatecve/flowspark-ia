@@ -6,7 +6,7 @@ import { CreateContactForm } from './CreateContactForm';
 import { ContactsList } from './ContactsList';
 import { CreateContactListForm } from './CreateContactListForm';
 import { ContactListsList } from './ContactListsList';
-import { ContactListDetail } from './ContactListDetail';
+import { ContactListManagement } from './ContactListManagement';
 import type { ContactList } from '@/types/contacts';
 
 export const ContactsPage = () => {
@@ -14,7 +14,7 @@ export const ContactsPage = () => {
 
   if (selectedList) {
     return (
-      <ContactListDetail 
+      <ContactListManagement 
         contactList={selectedList} 
         onBack={() => setSelectedList(null)} 
       />

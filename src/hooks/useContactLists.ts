@@ -31,9 +31,9 @@ export const useContactLists = () => {
   });
 
   // Obtener contactos de una lista específica con información de membresía
-  const useContactsInList = (listId: string) => {
+  const useContactsInList = (listId: string, refreshKey: number = 0) => {
     return useQuery({
-      queryKey: ['contacts-in-list', listId],
+      queryKey: ['contacts-in-list', listId, refreshKey],
       queryFn: async () => {
         console.log('Fetching contacts in list:', listId);
         

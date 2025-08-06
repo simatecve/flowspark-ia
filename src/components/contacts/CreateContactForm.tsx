@@ -6,7 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useContacts } from '@/hooks/useContacts';
 
-export const CreateContactForm = () => {
+interface CreateContactFormProps {
+  onContactCreated?: () => void;
+}
+
+export const CreateContactForm = ({ onContactCreated }: CreateContactFormProps) => {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -30,6 +34,9 @@ export const CreateContactForm = () => {
     setName('');
     setPhoneNumber('');
     setEmail('');
+    
+    // Notify parent component
+    onContactCreated?.();
   };
 
   return (
