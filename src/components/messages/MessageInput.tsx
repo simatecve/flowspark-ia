@@ -5,8 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+
+// Dynamic import for emoji picker to avoid build issues
+const EmojiPicker = React.lazy(() => 
+  import('@emoji-mart/react').then(module => ({ default: module.default }))
+);
 
 interface MessageInputProps {
   onSendMessage: (message: string, attachment?: string) => void;
@@ -82,12 +85,13 @@ export const MessageInput = ({ onSendMessage, disabled }: MessageInputProps) => 
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Picker
-                data={data}
-                onEmojiSelect={onEmojiSelect}
-                locale="es"
-                theme="light"
-              />
+              <React.Suspense fallback={<div className="p-4">Cargando emojis...</div>}>
+                <EmojiPicker
+                  onEmojiSelect={onEmojiSelect}
+                  locale="es"
+                  theme="light"
+                />
+              </React.Suspense>
             </PopoverContent>
           </Popover>
         </div>
