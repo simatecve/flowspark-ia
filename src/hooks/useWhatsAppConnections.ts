@@ -30,7 +30,7 @@ export const useWhatsAppConnections = () => {
     enabled: !!user,
   });
 
-  // Obtener webhooks (ahora disponibles para todos los usuarios autenticados)
+  // Obtener webhooks (disponibles para todos los usuarios autenticados)
   const { data: webhooks, isLoading: isLoadingWebhooks } = useQuery({
     queryKey: ['webhooks'],
     queryFn: async () => {

@@ -52,31 +52,28 @@ export type Database = {
           created_at: string
           function_description: string | null
           id: string
-          is_active: boolean | null
+          is_active: boolean
           name: string
           updated_at: string
           url: string
-          user_id: string
         }
         Insert: {
           created_at?: string
           function_description?: string | null
           id?: string
-          is_active?: boolean | null
+          is_active?: boolean
           name: string
           updated_at?: string
           url: string
-          user_id: string
         }
         Update: {
           created_at?: string
           function_description?: string | null
           id?: string
-          is_active?: boolean | null
+          is_active?: boolean
           name?: string
           updated_at?: string
           url?: string
-          user_id?: string
         }
         Relationships: []
       }
