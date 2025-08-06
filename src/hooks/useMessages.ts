@@ -41,7 +41,7 @@ export const useMessages = (conversationId: string | null) => {
     mutationFn: async (messageData: SendMessageToConversationData) => {
       console.log('Sending message to conversation:', messageData);
 
-      // Obtener información de la conversación y su instance_name
+      // Obtener información de la conversación
       const { data: conversationInfo, error: convError } = await supabase
         .from('conversations')
         .select(`
@@ -82,14 +82,15 @@ export const useMessages = (conversationId: string | null) => {
         throw new Error('Error al ejecutar el webhook');
       }
 
-      // Si el webhook fue exitoso, guardar en la base de datos
+      // Si el webhook fue exitoso, insertar el mensaje directamente SIN activar el trigger
+      // Usamos la conversación existente explícitamente
       const { data, error } = await supabase
         .from('messages')
         .insert({
-          conversation_id: messageData.conversation_id, // Usar la conversación existente
+          conversation_id: messageData.conversation_id, // Conversación existente
           instance_name: instanceName,
           whatsapp_number: conversationInfo.whatsapp_number,
-          pushname: conversationInfo.pushname,
+          pushname: conversationInfo.pushname, // Mantener el pushname original del contacto
           message: messageData.message,
           direction: 'outgoing',
           is_bot: false,
@@ -104,6 +105,15 @@ export const useMessages = (conversationId: string | null) => {
         console.error('Error sending message:', error);
         throw error;
       }
+
+      // Actualizar manualmente la conversación (ya que el mensaje outgoing no debe cambiar last_message)
+      // Solo actualizamos el timestamp
+      await supabase
+        .from('conversations')
+        .update({ 
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', messageData.conversation_id);
       
       return data as Message;
     },
