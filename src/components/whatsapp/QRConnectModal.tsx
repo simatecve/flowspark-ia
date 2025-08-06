@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useWhatsAppConnections } from '@/hooks/useWhatsAppConnections';
 import { Loader2 } from 'lucide-react';
 
 interface QRConnectModalProps {
@@ -32,13 +33,18 @@ export const QRConnectModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
+  const { getQRWebhook } = useWhatsAppConnections();
 
   const generateQR = async () => {
     setIsLoading(true);
     try {
       console.log('Generating QR code for connection:', connectionName);
       
-      const response = await fetch('https://n8nargentina.nocodeveloper.com/webhook/qr_instancia', {
+      // Obtener la URL del webhook desde la base de datos
+      const webhookUrl = await getQRWebhook();
+      console.log('Using QR webhook URL from database:', webhookUrl);
+      
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -79,6 +78,23 @@ export const useWhatsAppConnections = () => {
     if (error || !data) {
       console.error('Error fetching delete webhook:', error);
       throw new Error('No se pudo obtener el webhook para eliminar instancias');
+    }
+
+    return data.url;
+  };
+
+  // Función para obtener el webhook de generar código QR desde la BD
+  const getQRWebhook = async (): Promise<string> => {
+    const { data, error } = await supabase
+      .from('webhooks')
+      .select('url')
+      .eq('name', 'Generar Código QR WhatsApp')
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) {
+      console.error('Error fetching QR webhook:', error);
+      throw new Error('No se pudo obtener el webhook para generar código QR');
     }
 
     return data.url;
@@ -236,5 +252,6 @@ export const useWhatsAppConnections = () => {
     isCreatingConnection: createConnectionMutation.isPending,
     deleteConnection: deleteConnectionMutation.mutate,
     isDeletingConnection: deleteConnectionMutation.isPending,
+    getQRWebhook,
   };
 };
