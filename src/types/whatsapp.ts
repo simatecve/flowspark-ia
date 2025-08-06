@@ -25,3 +25,23 @@ export interface CreateWhatsAppConnectionData {
   color: string;
   phone_number: string;
 }
+
+export interface AIBot {
+  id: string;
+  user_id: string;
+  name: string;
+  whatsapp_connection_id: string;
+  instructions: string;
+  message_delay: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateAIBotData {
+  name: string;
+  whatsapp_connection_id: string;
+  instructions: string;
+  message_delay: number;
+  is_active: boolean;
+}

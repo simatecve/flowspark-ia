@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_bots: {
+        Row: {
+          created_at: string
+          id: string
+          instructions: string
+          is_active: boolean
+          message_delay: number
+          name: string
+          updated_at: string
+          user_id: string
+          whatsapp_connection_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instructions: string
+          is_active?: boolean
+          message_delay?: number
+          name: string
+          updated_at?: string
+          user_id: string
+          whatsapp_connection_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instructions?: string
+          is_active?: boolean
+          message_delay?: number
+          name?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_connection_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_bots_whatsapp_connection_id_fkey"
+            columns: ["whatsapp_connection_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           company_name: string | null
