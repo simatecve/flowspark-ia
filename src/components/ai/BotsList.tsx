@@ -68,13 +68,7 @@ export const BotsList = () => {
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Instancia WhatsApp:</div>
                 <div className="text-sm">
-                  {bot.whatsapp_connections?.name || 'Conexión no encontrada'}
-                  <Badge 
-                    variant={bot.whatsapp_connections?.status === 'conectado' ? 'default' : 'destructive'}
-                    className="ml-2"
-                  >
-                    {bot.whatsapp_connections?.status || 'Desconocido'}
-                  </Badge>
+                  {bot.whatsapp_connection_name}
                 </div>
               </div>
               

@@ -12,7 +12,7 @@ import { useWhatsAppConnections } from '@/hooks/useWhatsAppConnections';
 
 export const CreateBotForm = () => {
   const [name, setName] = useState('');
-  const [selectedConnectionId, setSelectedConnectionId] = useState('');
+  const [selectedConnectionName, setSelectedConnectionName] = useState('');
   const [instructions, setInstructions] = useState('');
   const [messageDelay, setMessageDelay] = useState(1000);
   const [isActive, setIsActive] = useState(false);
@@ -26,13 +26,13 @@ export const CreateBotForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !selectedConnectionId || !instructions.trim()) {
+    if (!name.trim() || !selectedConnectionName || !instructions.trim()) {
       return;
     }
 
     createBot({
       name: name.trim(),
-      whatsapp_connection_id: selectedConnectionId,
+      whatsapp_connection_name: selectedConnectionName,
       instructions: instructions.trim(),
       message_delay: messageDelay,
       is_active: isActive,
@@ -40,7 +40,7 @@ export const CreateBotForm = () => {
 
     // Limpiar formulario
     setName('');
-    setSelectedConnectionId('');
+    setSelectedConnectionName('');
     setInstructions('');
     setMessageDelay(1000);
     setIsActive(false);
@@ -73,13 +73,13 @@ export const CreateBotForm = () => {
                 No hay conexiones de WhatsApp activas. Primero debes crear y conectar una instancia de WhatsApp.
               </div>
             ) : (
-              <Select value={selectedConnectionId} onValueChange={setSelectedConnectionId} required>
+              <Select value={selectedConnectionName} onValueChange={setSelectedConnectionName} required>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona una instancia" />
                 </SelectTrigger>
                 <SelectContent>
                   {activeConnections.map((connection) => (
-                    <SelectItem key={connection.id} value={connection.id}>
+                    <SelectItem key={connection.id} value={connection.name}>
                       {connection.name} ({connection.phone_number})
                     </SelectItem>
                   ))}
@@ -127,7 +127,7 @@ export const CreateBotForm = () => {
 
           <Button 
             type="submit" 
-            disabled={isCreatingBot || !name.trim() || !selectedConnectionId || !instructions.trim() || activeConnections.length === 0}
+            disabled={isCreatingBot || !name.trim() || !selectedConnectionName || !instructions.trim() || activeConnections.length === 0}
             className="w-full"
           >
             {isCreatingBot ? 'Creando...' : 'Crear Bot'}

@@ -30,7 +30,7 @@ export interface AIBot {
   id: string;
   user_id: string;
   name: string;
-  whatsapp_connection_id: string;
+  whatsapp_connection_name: string;
   instructions: string;
   message_delay: number;
   is_active: boolean;
@@ -40,7 +40,7 @@ export interface AIBot {
 
 export interface CreateAIBotData {
   name: string;
-  whatsapp_connection_id: string;
+  whatsapp_connection_name: string;
   instructions: string;
   message_delay: number;
   is_active: boolean;

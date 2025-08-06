@@ -8,7 +8,7 @@ export interface AIBot {
   id: string;
   user_id: string;
   name: string;
-  whatsapp_connection_id: string;
+  whatsapp_connection_name: string;
   instructions: string;
   message_delay: number;
   is_active: boolean;
@@ -18,7 +18,7 @@ export interface AIBot {
 
 export interface CreateAIBotData {
   name: string;
-  whatsapp_connection_id: string;
+  whatsapp_connection_name: string;
   instructions: string;
   message_delay: number;
   is_active: boolean;
@@ -38,10 +38,7 @@ export const useAIBots = () => {
       console.log('Fetching AI bots for user:', user?.id);
       const { data, error } = await supabase
         .from('ai_bots')
-        .select(`
-          *,
-          whatsapp_connections!inner(name, status)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -49,7 +46,7 @@ export const useAIBots = () => {
         throw error;
       }
       console.log('Fetched AI bots:', data);
-      return data as (AIBot & { whatsapp_connections: { name: string; status: string } })[];
+      return data as AIBot[];
     },
     enabled: !!user,
   });
@@ -65,7 +62,7 @@ export const useAIBots = () => {
         .from('ai_bots')
         .insert({
           name: botData.name,
-          whatsapp_connection_id: botData.whatsapp_connection_id,
+          whatsapp_connection_name: botData.whatsapp_connection_name,
           instructions: botData.instructions,
           message_delay: botData.message_delay,
           is_active: botData.is_active,
