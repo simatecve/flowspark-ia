@@ -154,6 +154,92 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_columns: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          column_id: string
+          company: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          position: number
+          updated_at: string
+          user_id: string
+          value: number | null
+        }
+        Insert: {
+          column_id: string
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          position?: number
+          updated_at?: string
+          user_id: string
+          value?: number | null
+        }
+        Update: {
+          column_id?: string
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          position?: number
+          updated_at?: string
+          user_id?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "lead_columns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mass_campaigns: {
         Row: {
           attachment_names: string[] | null
