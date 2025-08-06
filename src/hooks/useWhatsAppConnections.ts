@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -129,7 +128,7 @@ export const useWhatsAppConnections = () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-connections'] });
       toast({
         title: "Conexión eliminada",
-        description: "La conexión de WhatsApp se ha eliminado correctamente.",
+        description: "La conexión de WhatsApp se ha eliminada correctamente.",
       });
     },
     onError: (error: any) => {
