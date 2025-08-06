@@ -55,13 +55,20 @@ export const QRConnectModal = ({
         throw new Error(`Error al generar el código QR: ${response.status}`);
       }
 
-      const data = await response.json();
-      console.log('QR response:', data);
+      const responseData = await response.json();
+      console.log('QR response:', responseData);
 
-      if (data.qr_code_base64) {
-        setQrCode(`data:image/png;base64,${data.qr_code_base64}`);
+      // La respuesta es un array, tomamos el primer elemento
+      if (Array.isArray(responseData) && responseData.length > 0 && responseData[0].success) {
+        const data = responseData[0].data;
+        if (data && data.base64) {
+          // El base64 ya viene con el prefijo data:image/png;base64,
+          setQrCode(data.base64);
+        } else {
+          throw new Error('No se recibió el código QR en el formato esperado');
+        }
       } else {
-        throw new Error('No se recibió el código QR');
+        throw new Error('Respuesta del webhook no válida');
       }
     } catch (error: any) {
       console.error('Error generating QR:', error);
