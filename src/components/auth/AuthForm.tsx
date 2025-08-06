@@ -85,140 +85,142 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-whatsapp-50 to-saas-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-whatsapp-gradient">
-              <MessageSquare className="h-6 w-6 text-white" />
-            </div>
-          </div>
-          <div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-whatsapp-600 to-saas-600 bg-clip-text text-transparent">
-              ChatFlow Pro
-            </CardTitle>
-            <CardDescription className="mt-2">
-              {isLogin ? 'Inicia sesión en tu cuenta' : 'Crea tu cuenta empresarial'}
-            </CardDescription>
-          </div>
-        </CardHeader>
-
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">Nombre</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      required={!isLogin}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Apellido</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      required={!isLogin}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="companyName">Empresa</Label>
-                  <Input
-                    id="companyName"
-                    name="companyName"
-                    type="text"
-                    value={formData.companyName}
-                    onChange={handleInputChange}
-                    required={!isLogin}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Teléfono</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Correo electrónico</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  minLength={6}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full w-10"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-whatsapp-50 to-saas-50 px-4">
+      <div className="w-full max-w-md">
+        <Card className="shadow-lg">
+          <CardHeader className="text-center space-y-4 pb-6">
+            <div className="flex justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-whatsapp-gradient">
+                <MessageSquare className="h-6 w-6 text-white" />
               </div>
             </div>
+            <div>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-whatsapp-600 to-saas-600 bg-clip-text text-transparent">
+                ChatFlow Pro
+              </CardTitle>
+              <CardDescription className="mt-2">
+                {isLogin ? 'Inicia sesión en tu cuenta' : 'Crea tu cuenta empresarial'}
+              </CardDescription>
+            </div>
+          </CardHeader>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
+          <CardContent className="px-6 pb-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {!isLogin && (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isLogin ? 'Iniciando sesión...' : 'Creando cuenta...'}
-                </>
-              ) : (
-                isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'
-              )}
-            </Button>
-          </form>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">Nombre</Label>
+                      <Input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        required={!isLogin}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Apellido</Label>
+                      <Input
+                        id="lastName"
+                        name="lastName"
+                        type="text"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        required={!isLogin}
+                      />
+                    </div>
+                  </div>
 
-          <div className="mt-4 text-center">
-            <Button
-              variant="link"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm"
-            >
-              {isLogin 
-                ? '¿No tienes cuenta? Regístrate aquí' 
-                : '¿Ya tienes cuenta? Inicia sesión'
-              }
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName">Empresa</Label>
+                    <Input
+                      id="companyName"
+                      name="companyName"
+                      type="text"
+                      value={formData.companyName}
+                      onChange={handleInputChange}
+                      required={!isLogin}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Teléfono</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Correo electrónico</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Contraseña</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    minLength={6}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full w-10"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full mt-6" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isLogin ? 'Iniciando sesión...' : 'Creando cuenta...'}
+                  </>
+                ) : (
+                  isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'
+                )}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <Button
+                variant="link"
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-sm"
+              >
+                {isLogin 
+                  ? '¿No tienes cuenta? Regístrate aquí' 
+                  : '¿Ya tienes cuenta? Inicia sesión'
+                }
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
