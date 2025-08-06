@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,7 +27,7 @@ export const useConversations = (instanceName?: string) => {
           unread_count,
           created_at,
           updated_at,
-          messages!inner(instance_name)
+          messages!inner(instance_name, direction, message, created_at)
         `)
         .or(user ? `user_id.eq.${user.id},user_id.is.null` : 'user_id.is.null')
         .order('last_message_at', { ascending: false });
@@ -45,19 +44,27 @@ export const useConversations = (instanceName?: string) => {
         throw error;
       }
 
-      // Transformar los datos para incluir instance_name
-      const transformedData = data?.map((conv: any) => ({
-        id: conv.id,
-        user_id: conv.user_id,
-        instance_name: conv.messages?.[0]?.instance_name || '',
-        whatsapp_number: conv.whatsapp_number,
-        pushname: conv.pushname,
-        last_message: conv.last_message,
-        last_message_at: conv.last_message_at,
-        unread_count: conv.unread_count,
-        created_at: conv.created_at,
-        updated_at: conv.updated_at,
-      })) || [];
+      // Transformar los datos para incluir instance_name y filtrar último mensaje
+      const transformedData = data?.map((conv: any) => {
+        // Buscar el último mensaje incoming (no outgoing) para mostrar en la lista
+        const incomingMessages = conv.messages?.filter((msg: any) => msg.direction === 'incoming') || [];
+        const lastIncomingMessage = incomingMessages.sort((a: any, b: any) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        )[0];
+
+        return {
+          id: conv.id,
+          user_id: conv.user_id,
+          instance_name: conv.messages?.[0]?.instance_name || '',
+          whatsapp_number: conv.whatsapp_number,
+          pushname: conv.pushname, // El pushname siempre representa al contacto (WhatsApp number)
+          last_message: lastIncomingMessage?.message || '', // Solo mostrar mensajes incoming
+          last_message_at: lastIncomingMessage?.created_at || conv.last_message_at,
+          unread_count: conv.unread_count,
+          created_at: conv.created_at,
+          updated_at: conv.updated_at,
+        };
+      }) || [];
 
       console.log('Fetched conversations:', transformedData);
       return transformedData as Conversation[];

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -78,16 +77,18 @@ export const ConversationList = ({
                 )}
               </div>
               
-              <div className="flex items-center justify-between mt-1">
-                <p className="text-sm text-muted-foreground truncate">
-                  {conversation.last_message}
-                </p>
-                {conversation.unread_count > 0 && (
-                  <Badge variant="default" className="bg-whatsapp-500 text-white text-xs">
-                    {conversation.unread_count}
-                  </Badge>
-                )}
-              </div>
+              {conversation.last_message && (
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-sm text-muted-foreground truncate">
+                    {conversation.last_message}
+                  </p>
+                  {conversation.unread_count > 0 && (
+                    <Badge variant="default" className="bg-whatsapp-500 text-white text-xs">
+                      {conversation.unread_count}
+                    </Badge>
+                  )}
+                </div>
+              )}
               
               <div className="flex items-center justify-between mt-1">
                 <p className="text-xs text-muted-foreground">
