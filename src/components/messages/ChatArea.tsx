@@ -30,7 +30,7 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
       conversation_id: conversation.id,
       message,
       attachment_url: attachment,
-      message_type: attachment ? 'image' : 'text', // Simplificado por ahora
+      message_type: attachment ? 'image' : 'text',
     });
   };
 
@@ -71,6 +71,11 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
             </h3>
             <p className="text-sm text-muted-foreground">
               {conversation.whatsapp_number}
+              {!conversation.user_id && (
+                <span className="ml-2 text-xs bg-accent px-2 py-1 rounded">
+                  Público
+                </span>
+              )}
             </p>
           </div>
         </div>

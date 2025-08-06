@@ -16,6 +16,8 @@ export const useMessages = (conversationId: string | null) => {
       if (!conversationId) return [];
       
       console.log('Fetching messages for conversation:', conversationId);
+      
+      // Fetch messages - the RLS policies will handle access control
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -29,20 +31,18 @@ export const useMessages = (conversationId: string | null) => {
       console.log('Fetched messages:', data);
       return data as Message[];
     },
-    enabled: !!user && !!conversationId,
+    enabled: !!conversationId,
   });
 
   // Mutación para enviar mensaje a una conversación específica
   const sendMessageToConversationMutation = useMutation({
     mutationFn: async (messageData: SendMessageToConversationData) => {
-      if (!user) throw new Error('User not authenticated');
-
       console.log('Sending message to conversation:', messageData);
 
       // Obtener información de la conversación
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
-        .select('whatsapp_number, pushname')
+        .select('whatsapp_number, pushname, user_id')
         .eq('id', messageData.conversation_id)
         .single();
 
@@ -61,7 +61,7 @@ export const useMessages = (conversationId: string | null) => {
           is_bot: false,
           attachment_url: messageData.attachment_url,
           message_type: messageData.message_type || 'text',
-          user_id: user.id,
+          user_id: conversation.user_id || (user ? user.id : null), // Use conversation's user_id or current user
         })
         .select()
         .single();
@@ -90,15 +90,13 @@ export const useMessages = (conversationId: string | null) => {
   // Mutación para crear mensaje (automáticamente crea o determina la conversación)
   const createMessageMutation = useMutation({
     mutationFn: async (messageData: CreateMessageData) => {
-      if (!user) throw new Error('User not authenticated');
-
       console.log('Creating message:', messageData);
 
       const { data, error } = await supabase
         .from('messages')
         .insert({
           ...messageData,
-          user_id: user.id,
+          user_id: user ? user.id : null, // Allow null user_id for public messages
         })
         .select()
         .single();

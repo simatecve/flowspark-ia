@@ -163,7 +163,7 @@ export type Database = {
           pushname: string | null
           unread_count: number | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           whatsapp_number: string
         }
         Insert: {
@@ -174,7 +174,7 @@ export type Database = {
           pushname?: string | null
           unread_count?: number | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           whatsapp_number: string
         }
         Update: {
@@ -185,7 +185,7 @@ export type Database = {
           pushname?: string | null
           unread_count?: number | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           whatsapp_number?: string
         }
         Relationships: []
@@ -351,7 +351,7 @@ export type Database = {
           message_type: string | null
           pushname: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           whatsapp_number: string
         }
         Insert: {
@@ -366,7 +366,7 @@ export type Database = {
           message_type?: string | null
           pushname?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           whatsapp_number: string
         }
         Update: {
@@ -381,7 +381,7 @@ export type Database = {
           message_type?: string | null
           pushname?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           whatsapp_number?: string
         }
         Relationships: [

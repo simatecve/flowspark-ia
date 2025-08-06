@@ -14,9 +14,12 @@ export const useConversations = () => {
     queryKey: ['conversations'],
     queryFn: async () => {
       console.log('Fetching conversations for user:', user?.id);
+      
+      // Fetch both user conversations and public conversations
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
+        .or(user ? `user_id.eq.${user.id},user_id.is.null` : 'user_id.is.null')
         .order('last_message_at', { ascending: false });
 
       if (error) {
@@ -26,7 +29,6 @@ export const useConversations = () => {
       console.log('Fetched conversations:', data);
       return data as Conversation[];
     },
-    enabled: !!user,
   });
 
   const markAsReadMutation = useMutation({
