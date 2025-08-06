@@ -117,15 +117,15 @@ export const useWhatsAppConnections = () => {
 
       console.log('Webhook executed successfully, saving to database');
 
-      // Si el webhook fue exitoso, guardar en la base de datos
+      // Si el webhook fue exitoso, guardar en la base de datos con estado 'desconectado'
       const { data, error } = await supabase
         .from('whatsapp_connections')
         .insert({
           name: connectionData.name,
-          color: connectionData.color,
+          color: '#ef4444', // Color rojo por defecto para conexiones desconectadas
           phone_number: connectionData.phone_number,
           user_id: user.id,
-          status: 'active',
+          status: 'desconectado',
         })
         .select()
         .single();
@@ -141,7 +141,7 @@ export const useWhatsAppConnections = () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-connections'] });
       toast({
         title: "¡Conexión creada!",
-        description: "La conexión de WhatsApp se ha creado correctamente.",
+        description: "La conexión de WhatsApp se ha creado correctamente. Usa el botón 'Conectar con QR' para activarla.",
       });
     },
     onError: (error: any) => {
