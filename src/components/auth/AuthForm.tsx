@@ -8,11 +8,7 @@ import { MessageSquare, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-interface AuthFormProps {
-  onSuccess: () => void;
-}
-
-const AuthForm = ({ onSuccess }: AuthFormProps) => {
+const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -49,8 +45,6 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
           title: "¡Bienvenido!",
           description: "Has iniciado sesión correctamente.",
         });
-        
-        onSuccess();
       } else {
         const { error } = await supabase.auth.signUp({
           email: formData.email,
