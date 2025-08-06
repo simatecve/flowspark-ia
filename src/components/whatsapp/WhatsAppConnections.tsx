@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, List } from 'lucide-react';
 import { CreateConnectionForm } from './CreateConnectionForm';
 import { ConnectionsList } from './ConnectionsList';
 
@@ -13,13 +15,30 @@ export const WhatsAppConnections = () => {
         </p>
       </div>
       
-      <div className="grid gap-6 lg:grid-cols-2">
-        <CreateConnectionForm />
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Conexiones Existentes</h3>
-          <ConnectionsList />
-        </div>
-      </div>
+      <Tabs defaultValue="create" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="create" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Nueva Conexión
+          </TabsTrigger>
+          <TabsTrigger value="list" className="flex items-center gap-2">
+            <List className="h-4 w-4" />
+            Conexiones Existentes
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="create" className="mt-6">
+          <div className="max-w-2xl">
+            <CreateConnectionForm />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="list" className="mt-6">
+          <div className="w-full">
+            <ConnectionsList />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
