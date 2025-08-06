@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,12 +15,17 @@ export const useWhatsAppConnections = () => {
   const { data: connections, isLoading: isLoadingConnections } = useQuery({
     queryKey: ['whatsapp-connections'],
     queryFn: async () => {
+      console.log('Fetching WhatsApp connections for user:', user?.id);
       const { data, error } = await supabase
         .from('whatsapp_connections')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching connections:', error);
+        throw error;
+      }
+      console.log('Fetched connections:', data);
       return data as WhatsAppConnection[];
     },
     enabled: !!user,
@@ -30,12 +35,17 @@ export const useWhatsAppConnections = () => {
   const { data: webhooks, isLoading: isLoadingWebhooks } = useQuery({
     queryKey: ['webhooks'],
     queryFn: async () => {
+      console.log('Fetching webhooks for user:', user?.id);
       const { data, error } = await supabase
         .from('webhooks')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching webhooks:', error);
+        throw error;
+      }
+      console.log('Fetched webhooks:', data);
       return data as Webhook[];
     },
     enabled: !!user,
@@ -104,12 +114,16 @@ export const useWhatsAppConnections = () => {
   // Eliminar conexión
   const deleteConnectionMutation = useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting WhatsApp connection:', id);
       const { error } = await supabase
         .from('whatsapp_connections')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting connection:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-connections'] });
@@ -118,7 +132,8 @@ export const useWhatsAppConnections = () => {
         description: "La conexión de WhatsApp se ha eliminado correctamente.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Error deleting connection:', error);
       toast({
         title: "Error",
         description: "Error al eliminar la conexión",
