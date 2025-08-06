@@ -29,6 +29,44 @@ export const useLeads = () => {
       }
 
       console.log('Leads fetched:', data);
+
+      // If there are leads without column_id, assign them to the default column
+      const leadsWithoutColumn = data?.filter(lead => !lead.column_id) || [];
+      
+      if (leadsWithoutColumn.length > 0 && user) {
+        console.log('Found leads without column_id, assigning to default column...');
+        
+        // Get the default column for this user
+        const { data: defaultColumn, error: columnError } = await supabase
+          .from('lead_columns')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_default', true)
+          .single();
+
+        if (!columnError && defaultColumn) {
+          // Update leads without column_id to use the default column
+          const leadIdsToUpdate = leadsWithoutColumn.map(lead => lead.id);
+          
+          const { error: updateError } = await supabase
+            .from('leads')
+            .update({ column_id: defaultColumn.id })
+            .in('id', leadIdsToUpdate);
+
+          if (updateError) {
+            console.error('Error updating leads with default column:', updateError);
+          } else {
+            console.log('Successfully assigned leads to default column');
+            // Update the data with the new column_id
+            data?.forEach(lead => {
+              if (!lead.column_id) {
+                lead.column_id = defaultColumn.id;
+              }
+            });
+          }
+        }
+      }
+
       return data || [];
     }
   });
