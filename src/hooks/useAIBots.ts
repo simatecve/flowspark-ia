@@ -46,7 +46,7 @@ export const useAIBots = () => {
         throw error;
       }
       console.log('Fetched AI bots:', data);
-      return data as AIBot[];
+      return data as unknown as AIBot[];
     },
     enabled: !!user,
   });
@@ -67,7 +67,7 @@ export const useAIBots = () => {
           message_delay: botData.message_delay,
           is_active: botData.is_active,
           user_id: user.id,
-        })
+        } as any)
         .select()
         .single();
 
@@ -76,7 +76,7 @@ export const useAIBots = () => {
         throw new Error('Error al crear el bot de IA: ' + error.message);
       }
       
-      return data as AIBot;
+      return data as unknown as AIBot;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-bots'] });
@@ -107,7 +107,7 @@ export const useAIBots = () => {
         .update({
           ...updateData,
           updated_at: new Date().toISOString(),
-        })
+        } as any)
         .eq('id', id)
         .select()
         .single();
@@ -117,7 +117,7 @@ export const useAIBots = () => {
         throw new Error('Error al actualizar el bot de IA: ' + error.message);
       }
       
-      return data as AIBot;
+      return data as unknown as AIBot;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-bots'] });
