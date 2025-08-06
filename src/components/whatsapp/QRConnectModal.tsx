@@ -33,31 +33,15 @@ export const QRConnectModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
-  const { getQRWebhook, getStoredQRCode } = useWhatsAppConnections();
+  const { getStoredQRCode } = useWhatsAppConnections();
 
   const loadQRCode = async () => {
     setIsLoading(true);
     try {
-      console.log('Loading QR code for connection:', connectionName);
+      console.log('Executing QR webhook for connection:', connectionName);
       
-      // Primero intentar obtener el código QR almacenado en la base de datos
-      const storedQR = await getStoredQRCode(connectionId);
-      
-      if (storedQR) {
-        console.log('Using stored QR code from database');
-        // Si el base64 no tiene el prefijo, agregarlo
-        const qrImageData = storedQR.startsWith('data:image/') 
-          ? storedQR 
-          : `data:image/png;base64,${storedQR}`;
-        setQrCode(qrImageData);
-        return;
-      }
-
-      console.log('No stored QR found, generating new one...');
-      
-      // Si no hay código QR almacenado, generar uno nuevo
-      const webhookUrl = await getQRWebhook();
-      console.log('Using QR webhook URL from database:', webhookUrl);
+      // Ejecutar el webhook
+      const webhookUrl = 'https://n8nargentina.nocodeveloper.com/webhook/qr_instancia';
       
       const response = await fetch(webhookUrl, {
         method: 'POST',
@@ -72,24 +56,24 @@ export const QRConnectModal = ({
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('QR generation error:', errorText);
-        throw new Error(`Error al generar el código QR: ${response.status}`);
+        console.error('QR webhook error:', errorText);
+        throw new Error(`Error al ejecutar el webhook: ${response.status}`);
       }
 
-      const responseData = await response.json();
-      console.log('QR response:', responseData);
+      console.log('QR webhook executed successfully');
 
-      // La respuesta es un array, tomamos el primer elemento
-      if (Array.isArray(responseData) && responseData.length > 0 && responseData[0].success) {
-        const data = responseData[0].data;
-        if (data && data.base64) {
-          // El base64 ya viene con el prefijo data:image/png;base64,
-          setQrCode(data.base64);
-        } else {
-          throw new Error('No se recibió el código QR en el formato esperado');
-        }
+      // Obtener el código QR desde la base de datos
+      const storedQR = await getStoredQRCode(connectionId);
+      
+      if (storedQR) {
+        console.log('QR code found in database');
+        // Si el base64 no tiene el prefijo, agregarlo
+        const qrImageData = storedQR.startsWith('data:image/') 
+          ? storedQR 
+          : `data:image/png;base64,${storedQR}`;
+        setQrCode(qrImageData);
       } else {
-        throw new Error('Respuesta del webhook no válida');
+        throw new Error('No se encontró el código QR en la base de datos');
       }
     } catch (error: any) {
       console.error('Error loading QR:', error);
@@ -147,7 +131,7 @@ export const QRConnectModal = ({
           {isLoading ? (
             <div className="flex flex-col items-center space-y-2">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <p className="text-sm text-muted-foreground">Cargando código QR...</p>
+              <p className="text-sm text-muted-foreground">Generando código QR...</p>
             </div>
           ) : qrCode ? (
             <>
