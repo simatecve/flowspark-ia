@@ -91,9 +91,9 @@ export const useWhatsAppConnections = () => {
 
       console.log('Creating WhatsApp connection:', connectionData);
 
-      // Obtener la URL del webhook desde la base de datos
+      // Obtener la URL del webhook CREAR desde la base de datos
       const webhookUrl = await getCreateInstanceWebhook();
-      console.log('Using webhook URL:', webhookUrl);
+      console.log('Using create webhook URL:', webhookUrl);
 
       // Ejecutar el webhook
       const webhookResponse = await fetch(webhookUrl, {
@@ -173,7 +173,7 @@ export const useWhatsAppConnections = () => {
         throw new Error('No se pudo obtener la información de la conexión');
       }
 
-      // Obtener la URL del webhook de eliminar desde la base de datos
+      // Obtener la URL del webhook ELIMINAR desde la base de datos
       const webhookUrl = await getDeleteInstanceWebhook();
       console.log('Using delete webhook URL:', webhookUrl);
 
