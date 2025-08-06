@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { AuthForm } from '@/components/auth/AuthForm';
+import AuthForm from '@/components/auth/AuthForm';
 import { AuthProvider } from '@/hooks/useAuth';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
