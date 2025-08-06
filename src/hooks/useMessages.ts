@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,7 +35,7 @@ export const useMessages = (conversationId: string | null) => {
     enabled: !!conversationId,
   });
 
-  // Mutación para enviar mensaje a una conversación específica
+  // Mutación para enviar mensaje a una conversación específica (solo webhook, no guardar en BD)
   const sendMessageToConversationMutation = useMutation({
     mutationFn: async (messageData: SendMessageToConversationData) => {
       console.log('Sending message to conversation:', messageData);
@@ -70,7 +69,7 @@ export const useMessages = (conversationId: string | null) => {
 
       const instanceName = firstMessage.instance_name;
 
-      // Primero ejecutar el webhook
+      // Solo ejecutar el webhook, NO guardar en la base de datos
       const webhookSuccess = await sendWebhook({
         instance_name: instanceName,
         whatsapp_number: conversationInfo.whatsapp_number,
@@ -82,44 +81,24 @@ export const useMessages = (conversationId: string | null) => {
         throw new Error('Error al ejecutar el webhook');
       }
 
-      // Si el webhook fue exitoso, insertar el mensaje directamente SIN activar el trigger
-      // Usamos la conversación existente explícitamente
-      const { data, error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: messageData.conversation_id, // Conversación existente
-          instance_name: instanceName,
-          whatsapp_number: conversationInfo.whatsapp_number,
-          pushname: conversationInfo.pushname, // Mantener el pushname original del contacto
-          message: messageData.message,
-          direction: 'outgoing',
-          is_bot: false,
-          attachment_url: messageData.attachment_url,
-          message_type: messageData.message_type || (messageData.attachment_url ? 'image' : 'text'),
-          user_id: conversationInfo.user_id || (user ? user.id : null),
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error sending message:', error);
-        throw error;
-      }
-
-      // Actualizar manualmente la conversación (ya que el mensaje outgoing no debe cambiar last_message)
-      // Solo actualizamos el timestamp
-      await supabase
-        .from('conversations')
-        .update({ 
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', messageData.conversation_id);
-      
-      return data as Message;
+      // Retornar datos simulados para mantener la consistencia de la interfaz
+      return {
+        id: 'temp-' + Date.now(),
+        conversation_id: messageData.conversation_id,
+        instance_name: instanceName,
+        whatsapp_number: conversationInfo.whatsapp_number,
+        pushname: conversationInfo.pushname,
+        message: messageData.message,
+        direction: 'outgoing',
+        is_bot: false,
+        attachment_url: messageData.attachment_url,
+        message_type: messageData.message_type || (messageData.attachment_url ? 'image' : 'text'),
+        user_id: conversationInfo.user_id || (user ? user.id : null),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as Message;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
       toast({
         title: "Mensaje enviado",
         description: "El mensaje se ha enviado correctamente.",
