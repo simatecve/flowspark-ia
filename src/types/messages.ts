@@ -18,6 +18,7 @@ export interface Message {
 export interface Conversation {
   id: string;
   user_id: string;
+  instance_name: string; // Agregado para identificar la instancia
   whatsapp_number: string;
   pushname?: string;
   last_message?: string;

@@ -41,21 +41,41 @@ export const useMessages = (conversationId: string | null) => {
     mutationFn: async (messageData: SendMessageToConversationData) => {
       console.log('Sending message to conversation:', messageData);
 
-      // Obtener información de la conversación
-      const { data: conversation, error: convError } = await supabase
+      // Obtener información de la conversación y su instance_name
+      const { data: conversationInfo, error: convError } = await supabase
         .from('conversations')
-        .select('whatsapp_number, pushname, user_id')
+        .select(`
+          whatsapp_number, 
+          pushname, 
+          user_id,
+          messages!inner(instance_name)
+        `)
         .eq('id', messageData.conversation_id)
+        .limit(1)
         .single();
 
-      if (convError || !conversation) {
+      if (convError || !conversationInfo) {
         throw new Error('Error obteniendo información de la conversación');
       }
 
+      // Obtener el instance_name del primer mensaje de la conversación
+      const { data: firstMessage, error: msgError } = await supabase
+        .from('messages')
+        .select('instance_name')
+        .eq('conversation_id', messageData.conversation_id)
+        .limit(1)
+        .single();
+
+      if (msgError || !firstMessage) {
+        throw new Error('Error obteniendo el nombre de instancia');
+      }
+
+      const instanceName = firstMessage.instance_name;
+
       // Primero ejecutar el webhook
       const webhookSuccess = await sendWebhook({
-        instance_name: 'web_client',
-        whatsapp_number: conversation.whatsapp_number,
+        instance_name: instanceName,
+        whatsapp_number: conversationInfo.whatsapp_number,
         message: messageData.message,
         attachment_url: messageData.attachment_url,
       });
@@ -68,15 +88,15 @@ export const useMessages = (conversationId: string | null) => {
       const { data, error } = await supabase
         .from('messages')
         .insert({
-          instance_name: 'web_client',
-          whatsapp_number: conversation.whatsapp_number,
-          pushname: conversation.pushname,
+          instance_name: instanceName,
+          whatsapp_number: conversationInfo.whatsapp_number,
+          pushname: conversationInfo.pushname,
           message: messageData.message,
           direction: 'outgoing',
           is_bot: false,
           attachment_url: messageData.attachment_url,
           message_type: messageData.message_type || (messageData.attachment_url ? 'image' : 'text'),
-          user_id: conversation.user_id || (user ? user.id : null),
+          user_id: conversationInfo.user_id || (user ? user.id : null),
         })
         .select()
         .single();

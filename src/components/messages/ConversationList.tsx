@@ -89,9 +89,14 @@ export const ConversationList = ({
                 )}
               </div>
               
-              <p className="text-xs text-muted-foreground mt-1">
-                {conversation.whatsapp_number}
-              </p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">
+                  {conversation.whatsapp_number}
+                </p>
+                <p className="text-xs text-muted-foreground bg-accent px-2 py-1 rounded">
+                  {conversation.instance_name}
+                </p>
+              </div>
             </div>
           </div>
         ))}
