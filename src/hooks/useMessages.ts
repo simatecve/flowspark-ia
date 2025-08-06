@@ -47,11 +47,9 @@ export const useMessages = (conversationId: string | null) => {
         .select(`
           whatsapp_number, 
           pushname, 
-          user_id,
-          messages!inner(instance_name)
+          user_id
         `)
         .eq('id', messageData.conversation_id)
-        .limit(1)
         .single();
 
       if (convError || !conversationInfo) {
@@ -88,6 +86,7 @@ export const useMessages = (conversationId: string | null) => {
       const { data, error } = await supabase
         .from('messages')
         .insert({
+          conversation_id: messageData.conversation_id, // Usar la conversación existente
           instance_name: instanceName,
           whatsapp_number: conversationInfo.whatsapp_number,
           pushname: conversationInfo.pushname,
@@ -127,6 +126,7 @@ export const useMessages = (conversationId: string | null) => {
   });
 
   // Mutación para crear mensaje (automáticamente crea o determina la conversación)
+  // Esta se usa para crear conversaciones desde otros lugares, no desde el chat
   const createMessageMutation = useMutation({
     mutationFn: async (messageData: CreateMessageData) => {
       console.log('Creating message:', messageData);
