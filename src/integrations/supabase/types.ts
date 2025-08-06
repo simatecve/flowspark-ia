@@ -79,6 +79,7 @@ export type Database = {
       }
       whatsapp_connections: {
         Row: {
+          codigo_qr: string | null
           color: string
           created_at: string
           id: string
@@ -89,6 +90,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          codigo_qr?: string | null
           color: string
           created_at?: string
           id?: string
@@ -99,6 +101,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          codigo_qr?: string | null
           color?: string
           created_at?: string
           id?: string
