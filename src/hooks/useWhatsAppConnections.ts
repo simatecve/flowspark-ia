@@ -30,7 +30,7 @@ export const useWhatsAppConnections = () => {
     enabled: !!user,
   });
 
-  // Obtener webhooks
+  // Obtener webhooks (incluyendo los del sistema)
   const { data: webhooks, isLoading: isLoadingWebhooks } = useQuery({
     queryKey: ['webhooks'],
     queryFn: async () => {
@@ -50,6 +50,23 @@ export const useWhatsAppConnections = () => {
     enabled: !!user,
   });
 
+  // Función para obtener el webhook de crear instancia desde la BD
+  const getCreateInstanceWebhook = async (): Promise<string> => {
+    const { data, error } = await supabase
+      .from('webhooks')
+      .select('url')
+      .eq('name', 'Crear Instancia WhatsApp')
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) {
+      console.error('Error fetching webhook:', error);
+      throw new Error('No se pudo obtener el webhook para crear instancias');
+    }
+
+    return data.url;
+  };
+
   // Crear conexión de WhatsApp
   const createConnectionMutation = useMutation({
     mutationFn: async (connectionData: CreateWhatsAppConnectionData) => {
@@ -57,8 +74,12 @@ export const useWhatsAppConnections = () => {
 
       console.log('Creating WhatsApp connection:', connectionData);
 
-      // Primero ejecutar el webhook
-      const webhookResponse = await fetch('https://n8nargentina.nocodeveloper.com/webhook/crear_instancia', {
+      // Obtener la URL del webhook desde la base de datos
+      const webhookUrl = await getCreateInstanceWebhook();
+      console.log('Using webhook URL:', webhookUrl);
+
+      // Ejecutar el webhook
+      const webhookResponse = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +93,9 @@ export const useWhatsAppConnections = () => {
       });
 
       if (!webhookResponse.ok) {
-        throw new Error('Error al ejecutar el webhook para crear la instancia de WhatsApp');
+        const errorText = await webhookResponse.text();
+        console.error('Webhook error response:', errorText);
+        throw new Error(`Error al ejecutar el webhook: ${webhookResponse.status} - ${errorText}`);
       }
 
       console.log('Webhook executed successfully, saving to database');
@@ -90,7 +113,11 @@ export const useWhatsAppConnections = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw new Error('Error al guardar en la base de datos: ' + error.message);
+      }
+      
       return data as WhatsAppConnection;
     },
     onSuccess: () => {
