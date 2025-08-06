@@ -1,3 +1,4 @@
+
 export interface WhatsAppConnection {
   id: string;
   user_id: string;
@@ -56,6 +57,8 @@ export interface MassCampaign {
   min_delay: number;
   max_delay: number;
   status: string;
+  attachment_urls: string[];
+  attachment_names: string[];
   created_at: string;
   updated_at: string;
 }
@@ -68,4 +71,6 @@ export interface CreateCampaignData {
   edit_with_ai: boolean;
   min_delay: number;
   max_delay: number;
+  attachment_urls?: string[];
+  attachment_names?: string[];
 }

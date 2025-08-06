@@ -63,6 +63,8 @@ export type Database = {
       }
       mass_campaigns: {
         Row: {
+          attachment_names: string[] | null
+          attachment_urls: string[] | null
           campaign_message: string
           created_at: string
           description: string | null
@@ -77,6 +79,8 @@ export type Database = {
           whatsapp_connection_name: string
         }
         Insert: {
+          attachment_names?: string[] | null
+          attachment_urls?: string[] | null
           campaign_message: string
           created_at?: string
           description?: string | null
@@ -91,6 +95,8 @@ export type Database = {
           whatsapp_connection_name: string
         }
         Update: {
+          attachment_names?: string[] | null
+          attachment_urls?: string[] | null
           campaign_message?: string
           created_at?: string
           description?: string | null

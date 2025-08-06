@@ -15,6 +15,8 @@ export interface MassCampaign {
   min_delay: number;
   max_delay: number;
   status: string;
+  attachment_urls: string[];
+  attachment_names: string[];
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +29,8 @@ export interface CreateCampaignData {
   edit_with_ai: boolean;
   min_delay: number;
   max_delay: number;
+  attachment_urls?: string[];
+  attachment_names?: string[];
 }
 
 export interface UpdateCampaignData extends Partial<CreateCampaignData> {}
@@ -73,6 +77,8 @@ export const useMassCampaigns = () => {
           edit_with_ai: campaignData.edit_with_ai,
           min_delay: campaignData.min_delay,
           max_delay: campaignData.max_delay,
+          attachment_urls: campaignData.attachment_urls || [],
+          attachment_names: campaignData.attachment_names || [],
           user_id: user.id,
         } as any)
         .select()

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useMassCampaigns } from '@/hooks/useMassCampaigns';
 import { useWhatsAppConnections } from '@/hooks/useWhatsAppConnections';
+import { FileUpload, AttachmentFile } from './FileUpload';
 
 export const CreateCampaignForm = () => {
   const [name, setName] = useState('');
@@ -18,6 +19,7 @@ export const CreateCampaignForm = () => {
   const [editWithAi, setEditWithAi] = useState(false);
   const [minDelay, setMinDelay] = useState(1000);
   const [maxDelay, setMaxDelay] = useState(5000);
+  const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
 
   const { connections, isLoadingConnections } = useWhatsAppConnections();
   const { createCampaign, isCreatingCampaign } = useMassCampaigns();
@@ -37,6 +39,8 @@ export const CreateCampaignForm = () => {
       edit_with_ai: editWithAi,
       min_delay: minDelay,
       max_delay: maxDelay,
+      attachment_urls: attachments.map(att => att.url),
+      attachment_names: attachments.map(att => att.name),
     });
 
     // Limpiar formulario
@@ -47,6 +51,7 @@ export const CreateCampaignForm = () => {
     setEditWithAi(false);
     setMinDelay(1000);
     setMaxDelay(5000);
+    setAttachments([]);
   };
 
   return (
@@ -111,6 +116,12 @@ export const CreateCampaignForm = () => {
               required
             />
           </div>
+
+          <FileUpload
+            attachments={attachments}
+            onAttachmentsChange={setAttachments}
+            disabled={isCreatingCampaign}
+          />
 
           <div className="flex items-center justify-between">
             <div>

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Play, Pause, MessageSquare } from 'lucide-react';
+import { Trash2, Edit, Play, Pause, MessageSquare, Paperclip } from 'lucide-react';
 import { useMassCampaigns } from '@/hooks/useMassCampaigns';
 
 export const CampaignsList = () => {
@@ -72,6 +72,12 @@ export const CampaignsList = () => {
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
                 {campaign.name}
+                {campaign.attachment_urls && campaign.attachment_urls.length > 0 && (
+                  <Badge variant="outline" className="ml-2">
+                    <Paperclip className="h-3 w-3 mr-1" />
+                    {campaign.attachment_urls.length}
+                  </Badge>
+                )}
               </CardTitle>
               <Badge variant={getStatusColor(campaign.status)}>
                 {getStatusText(campaign.status)}
@@ -98,6 +104,20 @@ export const CampaignsList = () => {
                   {campaign.campaign_message}
                 </div>
               </div>
+
+              {campaign.attachment_urls && campaign.attachment_urls.length > 0 && (
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">Adjuntos:</div>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {campaign.attachment_names?.map((name, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        <Paperclip className="h-3 w-3 mr-1" />
+                        {name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                 <div>
