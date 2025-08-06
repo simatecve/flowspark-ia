@@ -49,6 +49,22 @@ export const useWhatsAppConnections = () => {
     enabled: !!user,
   });
 
+  // Función para obtener el código QR de una conexión específica
+  const getStoredQRCode = async (connectionId: string): Promise<string | null> => {
+    const { data, error } = await supabase
+      .from('whatsapp_connections')
+      .select('codigo_qr')
+      .eq('id', connectionId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching stored QR code:', error);
+      return null;
+    }
+
+    return data.codigo_qr;
+  };
+
   // Función para obtener el webhook de crear instancia desde la BD
   const getCreateInstanceWebhook = async (): Promise<string> => {
     const { data, error } = await supabase
@@ -253,5 +269,6 @@ export const useWhatsAppConnections = () => {
     deleteConnection: deleteConnectionMutation.mutate,
     isDeletingConnection: deleteConnectionMutation.isPending,
     getQRWebhook,
+    getStoredQRCode,
   };
 };

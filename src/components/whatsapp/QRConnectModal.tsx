@@ -33,14 +33,29 @@ export const QRConnectModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
-  const { getQRWebhook } = useWhatsAppConnections();
+  const { getQRWebhook, getStoredQRCode } = useWhatsAppConnections();
 
-  const generateQR = async () => {
+  const loadQRCode = async () => {
     setIsLoading(true);
     try {
-      console.log('Generating QR code for connection:', connectionName);
+      console.log('Loading QR code for connection:', connectionName);
       
-      // Obtener la URL del webhook desde la base de datos
+      // Primero intentar obtener el código QR almacenado en la base de datos
+      const storedQR = await getStoredQRCode(connectionId);
+      
+      if (storedQR) {
+        console.log('Using stored QR code from database');
+        // Si el base64 no tiene el prefijo, agregarlo
+        const qrImageData = storedQR.startsWith('data:image/') 
+          ? storedQR 
+          : `data:image/png;base64,${storedQR}`;
+        setQrCode(qrImageData);
+        return;
+      }
+
+      console.log('No stored QR found, generating new one...');
+      
+      // Si no hay código QR almacenado, generar uno nuevo
       const webhookUrl = await getQRWebhook();
       console.log('Using QR webhook URL from database:', webhookUrl);
       
@@ -77,10 +92,10 @@ export const QRConnectModal = ({
         throw new Error('Respuesta del webhook no válida');
       }
     } catch (error: any) {
-      console.error('Error generating QR:', error);
+      console.error('Error loading QR:', error);
       toast({
         title: "Error",
-        description: error.message || "Error al generar el código QR",
+        description: error.message || "Error al cargar el código QR",
         variant: "destructive",
       });
     } finally {
@@ -112,7 +127,7 @@ export const QRConnectModal = ({
 
   React.useEffect(() => {
     if (isOpen && !qrCode) {
-      generateQR();
+      loadQRCode();
     }
   }, [isOpen]);
 
@@ -132,7 +147,7 @@ export const QRConnectModal = ({
           {isLoading ? (
             <div className="flex flex-col items-center space-y-2">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <p className="text-sm text-muted-foreground">Generando código QR...</p>
+              <p className="text-sm text-muted-foreground">Cargando código QR...</p>
             </div>
           ) : qrCode ? (
             <>
@@ -162,7 +177,7 @@ export const QRConnectModal = ({
               </p>
               <Button 
                 variant="outline" 
-                onClick={generateQR}
+                onClick={loadQRCode}
                 className="mt-2"
               >
                 Reintentar
