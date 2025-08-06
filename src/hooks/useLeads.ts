@@ -2,11 +2,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import type { Lead, CreateLeadData, UpdateLeadData, MoveLeadData } from '@/types/leads';
 
 export const useLeads = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const {
     data: leads = [],
@@ -33,6 +35,10 @@ export const useLeads = () => {
 
   const createLeadMutation = useMutation({
     mutationFn: async (leadData: CreateLeadData) => {
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       console.log('Creating lead:', leadData);
       
       // Get leads in the target column to calculate position
@@ -42,8 +48,15 @@ export const useLeads = () => {
       const { data, error } = await supabase
         .from('leads')
         .insert({
-          ...leadData,
-          position: leadData.position ?? maxPosition
+          column_id: leadData.column_id,
+          name: leadData.name,
+          email: leadData.email,
+          phone: leadData.phone,
+          company: leadData.company,
+          value: leadData.value,
+          notes: leadData.notes,
+          position: leadData.position ?? maxPosition,
+          user_id: user.id
         })
         .select()
         .single();

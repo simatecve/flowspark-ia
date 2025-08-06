@@ -75,11 +75,14 @@ export const CreateLeadModal: React.FC<CreateLeadModalProps> = ({
   }, [selectedColumnId, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    // Ensure the values conform to CreateLeadData type
     const submitData = {
-      ...values,
+      column_id: values.column_id,
+      name: values.name,
       email: values.email || undefined,
       phone: values.phone || undefined,
       company: values.company || undefined,
+      value: values.value || undefined,
       notes: values.notes || undefined,
     };
     

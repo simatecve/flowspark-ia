@@ -46,7 +46,12 @@ export const CreateColumnModal: React.FC<CreateColumnModalProps> = ({
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    createColumn(values);
+    // Ensure the values conform to CreateLeadColumnData type
+    const columnData = {
+      name: values.name,
+      color: values.color,
+    };
+    createColumn(columnData);
     form.reset();
     onClose();
   };
