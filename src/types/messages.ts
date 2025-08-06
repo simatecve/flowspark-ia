@@ -2,7 +2,7 @@
 export interface Message {
   id: string;
   user_id: string;
-  conversation_id: string;
+  conversation_id?: string; // Ahora es opcional ya que se asigna automáticamente
   instance_name: string;
   whatsapp_number: string;
   pushname?: string;
@@ -27,6 +27,7 @@ export interface Conversation {
   updated_at: string;
 }
 
+// Nueva interfaz simplificada para crear mensajes
 export interface CreateMessageData {
   instance_name: string;
   whatsapp_number: string;
@@ -38,7 +39,8 @@ export interface CreateMessageData {
   message_type?: 'text' | 'image' | 'video' | 'audio' | 'document';
 }
 
-export interface SendMessageData {
+// Interfaz para enviar mensajes desde la conversación seleccionada
+export interface SendMessageToConversationData {
   conversation_id: string;
   message: string;
   attachment_url?: string;

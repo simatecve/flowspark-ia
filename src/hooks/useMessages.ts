@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import type { Message, CreateMessageData, SendMessageData } from '@/types/messages';
+import type { Message, CreateMessageData, SendMessageToConversationData } from '@/types/messages';
 
 export const useMessages = (conversationId: string | null) => {
   const { user } = useAuth();
@@ -32,11 +32,12 @@ export const useMessages = (conversationId: string | null) => {
     enabled: !!user && !!conversationId,
   });
 
-  const sendMessageMutation = useMutation({
-    mutationFn: async (messageData: SendMessageData) => {
+  // Mutación para enviar mensaje a una conversación específica
+  const sendMessageToConversationMutation = useMutation({
+    mutationFn: async (messageData: SendMessageToConversationData) => {
       if (!user) throw new Error('User not authenticated');
 
-      console.log('Sending message:', messageData);
+      console.log('Sending message to conversation:', messageData);
 
       // Obtener información de la conversación
       const { data: conversation, error: convError } = await supabase
@@ -52,8 +53,7 @@ export const useMessages = (conversationId: string | null) => {
       const { data, error } = await supabase
         .from('messages')
         .insert({
-          conversation_id: messageData.conversation_id,
-          instance_name: 'web_client', // Default para mensajes enviados desde la web
+          instance_name: 'web_client',
           whatsapp_number: conversation.whatsapp_number,
           pushname: conversation.pushname,
           message: messageData.message,
@@ -87,10 +87,48 @@ export const useMessages = (conversationId: string | null) => {
     },
   });
 
+  // Mutación para crear mensaje (automáticamente crea o determina la conversación)
+  const createMessageMutation = useMutation({
+    mutationFn: async (messageData: CreateMessageData) => {
+      if (!user) throw new Error('User not authenticated');
+
+      console.log('Creating message:', messageData);
+
+      const { data, error } = await supabase
+        .from('messages')
+        .insert({
+          ...messageData,
+          user_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating message:', error);
+        throw error;
+      }
+      
+      return data as Message;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+    onError: (error: any) => {
+      console.error('Error creating message:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Error al crear el mensaje",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     messages,
     isLoading,
-    sendMessage: sendMessageMutation.mutate,
-    isSending: sendMessageMutation.isPending,
+    sendMessageToConversation: sendMessageToConversationMutation.mutate,
+    createMessage: createMessageMutation.mutate,
+    isSending: sendMessageToConversationMutation.isPending || createMessageMutation.isPending,
   };
 };
