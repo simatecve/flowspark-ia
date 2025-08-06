@@ -12,6 +12,7 @@ import DashboardPage from "./pages/Dashboard";
 import ConnectionsPage from "./pages/Connections";
 import MessagesPage from "./pages/Messages";
 import SettingsPage from "@/components/settings/SettingsPage";
+import { AIBotsPage } from "@/components/ai/AIBotsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ function AppContent() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/messages" element={<MessagesPage />} />
+        <Route path="/bot" element={<AIBotsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
