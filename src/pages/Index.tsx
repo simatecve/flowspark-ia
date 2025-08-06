@@ -31,7 +31,13 @@ const AppContent = () => {
       case 'dashboard':
         return <Dashboard />;
       default:
-        return <ComingSoon title={getPageTitle(currentPage)} />;
+        return (
+          <ComingSoon 
+            title={getPageTitle(currentPage)} 
+            description={getPageDescription(currentPage)}
+            features={getPageFeatures(currentPage)}
+          />
+        );
     }
   };
 
@@ -48,6 +54,36 @@ const AppContent = () => {
       'settings': 'Configuración'
     };
     return titles[page] || 'Funcionalidad';
+  };
+
+  const getPageDescription = (page: string): string => {
+    const descriptions: { [key: string]: string } = {
+      'messages': 'Gestiona todas tus conversaciones de WhatsApp desde un solo lugar.',
+      'leads': 'Organiza y da seguimiento a todos tus leads potenciales.',
+      'campaigns': 'Crea y ejecuta campañas masivas de marketing por WhatsApp.',
+      'calendar': 'Programa y organiza tus citas y recordatorios.',
+      'bot': 'Configura respuestas automáticas inteligentes con IA.',
+      'connections': 'Conecta y gestiona múltiples cuentas de WhatsApp.',
+      'analytics': 'Analiza el rendimiento de tus campañas y conversaciones.',
+      'billing': 'Gestiona tu suscripción y métodos de pago.',
+      'settings': 'Configura las preferencias de tu cuenta.'
+    };
+    return descriptions[page] || 'Esta funcionalidad estará disponible próximamente.';
+  };
+
+  const getPageFeatures = (page: string): string[] => {
+    const features: { [key: string]: string[] } = {
+      'messages': ['Chat en tiempo real', 'Historial de conversaciones', 'Etiquetas y filtros'],
+      'leads': ['Seguimiento de estado', 'Notas personalizadas', 'Integración con CRM'],
+      'campaigns': ['Plantillas personalizadas', 'Programación automática', 'Segmentación avanzada'],
+      'calendar': ['Sincronización con Google Calendar', 'Recordatorios automáticos', 'Vista mensual/semanal'],
+      'bot': ['Respuestas inteligentes', 'Flujos de conversación', 'Aprendizaje automático'],
+      'connections': ['Múltiples números', 'Estado de conexión', 'Configuración por cuenta'],
+      'analytics': ['Métricas en tiempo real', 'Reportes personalizados', 'Exportación de datos'],
+      'billing': ['Gestión de planes', 'Historial de pagos', 'Facturas descargables'],
+      'settings': ['Preferencias de usuario', 'Configuración de notificaciones', 'Gestión de equipo']
+    };
+    return features[page] || [];
   };
 
   return (
