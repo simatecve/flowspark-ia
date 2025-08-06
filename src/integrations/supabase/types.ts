@@ -154,6 +154,42 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message: string | null
+          last_message_at: string | null
+          pushname: string | null
+          unread_count: number | null
+          updated_at: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string | null
+          pushname?: string | null
+          unread_count?: number | null
+          updated_at?: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string | null
+          pushname?: string | null
+          unread_count?: number | null
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
       lead_columns: {
         Row: {
           color: string
@@ -298,6 +334,62 @@ export type Database = {
             columns: ["contact_list_id"]
             isOneToOne: false
             referencedRelation: "contact_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          attachment_url: string | null
+          conversation_id: string
+          created_at: string
+          direction: string
+          id: string
+          instance_name: string
+          is_bot: boolean | null
+          message: string
+          message_type: string | null
+          pushname: string | null
+          updated_at: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          conversation_id: string
+          created_at?: string
+          direction: string
+          id?: string
+          instance_name: string
+          is_bot?: boolean | null
+          message: string
+          message_type?: string | null
+          pushname?: string | null
+          updated_at?: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Update: {
+          attachment_url?: string | null
+          conversation_id?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          instance_name?: string
+          is_bot?: boolean | null
+          message?: string
+          message_type?: string | null
+          pushname?: string | null
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
