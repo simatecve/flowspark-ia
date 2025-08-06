@@ -24,7 +24,8 @@ export type Database = {
           name: string
           updated_at: string
           user_id: string
-          whatsapp_connection_id: string
+          whatsapp_connection_id: string | null
+          whatsapp_connection_name: string | null
         }
         Insert: {
           created_at?: string
@@ -35,7 +36,8 @@ export type Database = {
           name: string
           updated_at?: string
           user_id: string
-          whatsapp_connection_id: string
+          whatsapp_connection_id?: string | null
+          whatsapp_connection_name?: string | null
         }
         Update: {
           created_at?: string
@@ -46,7 +48,8 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string
-          whatsapp_connection_id?: string
+          whatsapp_connection_id?: string | null
+          whatsapp_connection_name?: string | null
         }
         Relationships: [
           {
@@ -57,6 +60,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mass_campaigns: {
+        Row: {
+          campaign_message: string
+          created_at: string
+          description: string | null
+          edit_with_ai: boolean
+          id: string
+          max_delay: number
+          min_delay: number
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+          whatsapp_connection_name: string
+        }
+        Insert: {
+          campaign_message: string
+          created_at?: string
+          description?: string | null
+          edit_with_ai?: boolean
+          id?: string
+          max_delay?: number
+          min_delay?: number
+          name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          whatsapp_connection_name: string
+        }
+        Update: {
+          campaign_message?: string
+          created_at?: string
+          description?: string | null
+          edit_with_ai?: boolean
+          id?: string
+          max_delay?: number
+          min_delay?: number
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_connection_name?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
