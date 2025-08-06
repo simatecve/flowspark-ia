@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   MessageCircle, 
@@ -17,16 +16,49 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SidebarProps {
   currentPage: string;
   onPageChange: (page: string) => void;
 }
 
+interface UserProfile {
+  first_name?: string;
+  last_name?: string;
+  company_name?: string;
+  plan_type?: string;
+}
+
 const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['main']);
+  const [userProfile, setUserProfile] = useState<UserProfile>({});
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, company_name, plan_type')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+      if (data) setUserProfile(data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroups(prev => 
@@ -34,6 +66,29 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
         ? prev.filter(id => id !== groupId)
         : [...prev, groupId]
     );
+  };
+
+  const getInitials = () => {
+    const firstName = userProfile.first_name || '';
+    const lastName = userProfile.last_name || '';
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U';
+  };
+
+  const getDisplayName = () => {
+    if (userProfile.first_name && userProfile.last_name) {
+      return `${userProfile.first_name} ${userProfile.last_name}`;
+    }
+    return user?.email?.split('@')[0] || 'Usuario';
+  };
+
+  const getPlanDisplay = () => {
+    const plan = userProfile.plan_type || 'basic';
+    const planNames = {
+      basic: 'Plan Básico',
+      pro: 'Plan Pro',
+      enterprise: 'Plan Enterprise'
+    };
+    return planNames[plan as keyof typeof planNames] || 'Plan Básico';
   };
 
   const menuGroups = [
@@ -204,17 +259,32 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
         </nav>
 
         {/* User info at bottom */}
-        {!collapsed && (
-          <div className="border-t p-4">
+        <div className="border-t p-4">
+          {collapsed ? (
+            <div className="flex justify-center">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-gradient-to-br from-whatsapp-500 to-saas-500 text-white text-xs">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          ) : (
             <div className="flex items-center space-x-3">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-whatsapp-500 to-saas-500"></div>
-              <div className="flex-1 text-sm">
-                <p className="font-medium">María García</p>
-                <p className="text-xs text-muted-foreground">Plan Pro Activo</p>
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-gradient-to-br from-whatsapp-500 to-saas-500 text-white">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">{getDisplayName()}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {userProfile.company_name || getPlanDisplay()}
+                </p>
+                <p className="text-xs text-muted-foreground">{getPlanDisplay()}</p>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </aside>
   );
