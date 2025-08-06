@@ -1,0 +1,140 @@
+
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import type { WhatsAppConnection, CreateWhatsAppConnectionData, Webhook } from '@/types/whatsapp';
+
+export const useWhatsAppConnections = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Obtener conexiones de WhatsApp
+  const { data: connections, isLoading: isLoadingConnections } = useQuery({
+    queryKey: ['whatsapp-connections'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('whatsapp_connections')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as WhatsAppConnection[];
+    },
+    enabled: !!user,
+  });
+
+  // Obtener webhooks
+  const { data: webhooks, isLoading: isLoadingWebhooks } = useQuery({
+    queryKey: ['webhooks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('webhooks')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Webhook[];
+    },
+    enabled: !!user,
+  });
+
+  // Crear conexión de WhatsApp
+  const createConnectionMutation = useMutation({
+    mutationFn: async (connectionData: CreateWhatsAppConnectionData) => {
+      if (!user) throw new Error('User not authenticated');
+
+      console.log('Creating WhatsApp connection:', connectionData);
+
+      // Primero ejecutar el webhook
+      const webhookResponse = await fetch('https://n8nargentina.nocodeveloper.com/webhook/crear_instancia', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: connectionData.name,
+          color: connectionData.color,
+          phone_number: connectionData.phone_number,
+          user_id: user.id,
+        }),
+      });
+
+      if (!webhookResponse.ok) {
+        throw new Error('Error al ejecutar el webhook para crear la instancia de WhatsApp');
+      }
+
+      console.log('Webhook executed successfully, saving to database');
+
+      // Si el webhook fue exitoso, guardar en la base de datos
+      const { data, error } = await supabase
+        .from('whatsapp_connections')
+        .insert({
+          name: connectionData.name,
+          color: connectionData.color,
+          phone_number: connectionData.phone_number,
+          user_id: user.id,
+          status: 'active',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as WhatsAppConnection;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-connections'] });
+      toast({
+        title: "¡Conexión creada!",
+        description: "La conexión de WhatsApp se ha creado correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error creating WhatsApp connection:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Error al crear la conexión de WhatsApp",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Eliminar conexión
+  const deleteConnectionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('whatsapp_connections')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-connections'] });
+      toast({
+        title: "Conexión eliminada",
+        description: "La conexión de WhatsApp se ha eliminado correctamente.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Error al eliminar la conexión",
+        variant: "destructive",
+      });
+    },
+  });
+
+  return {
+    connections,
+    webhooks,
+    isLoadingConnections,
+    isLoadingWebhooks,
+    createConnection: createConnectionMutation.mutate,
+    isCreatingConnection: createConnectionMutation.isPending,
+    deleteConnection: deleteConnectionMutation.mutate,
+    isDeletingConnection: deleteConnectionMutation.isPending,
+  };
+};

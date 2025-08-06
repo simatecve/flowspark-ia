@@ -1,74 +1,64 @@
 
-import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import AuthForm from '@/components/auth/AuthForm';
 import { AuthProvider } from '@/hooks/useAuth';
-import Navbar from '@/components/layout/Navbar';
-import Sidebar from '@/components/layout/Sidebar';
-import ComingSoon from '@/components/ComingSoon';
-import Dashboard from '@/components/dashboard/Dashboard';
-import SettingsPage from '@/components/settings/SettingsPage';
+import AuthForm from '@/components/auth/AuthForm';
+import { WhatsAppConnections } from '@/components/whatsapp/WhatsAppConnections';
+import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
 
 const Index = () => {
   return (
     <AuthProvider>
-      <MainApp />
+      <IndexContent />
     </AuthProvider>
   );
 };
 
-const MainApp = () => {
-  const { user, loading } = useAuth();
-  const [currentPage, setCurrentPage] = useState('dashboard');
+const IndexContent = () => {
+  const { user, loading, signOut } = useAuth();
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Cargando...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
       </div>
     );
   }
 
   if (!user) {
-    return <AuthForm />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold">Bienvenido</h1>
+            <p className="text-muted-foreground mt-2">
+              Inicia sesión para gestionar tus conexiones de WhatsApp
+            </p>
+          </div>
+          <AuthForm />
+        </div>
+      </div>
+    );
   }
 
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'settings':
-        return <SettingsPage />;
-      case 'messages':
-        return <ComingSoon title="Mensajería WhatsApp" description="Sistema avanzado de mensajería para comunicación directa con tus clientes" />;
-      case 'campaigns':
-        return <ComingSoon title="Campañas Masivas" description="Herramientas para crear y gestionar campañas de marketing masivas" />;
-      case 'connections':
-        return <ComingSoon title="Conexiones WhatsApp" description="Gestión de múltiples cuentas y conexiones de WhatsApp Business" />;
-      case 'leads':
-        return <ComingSoon title="Gestión de Leads" description="CRM integrado para el seguimiento y conversión de leads" />;
-      case 'calendar':
-        return <ComingSoon title="Calendario" description="Sistema de programación y gestión de citas y eventos" />;
-      case 'bot':
-        return <ComingSoon title="Bot IA" description="Chatbot inteligente con IA para automatizar conversaciones" />;
-      case 'analytics':
-        return <ComingSoon title="Estadísticas" description="Análisis detallado de rendimiento y métricas de engagement" />;
-      case 'billing':
-        return <ComingSoon title="Planes y Facturación" description="Gestión de suscripciones, pagos y facturación" />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <Navbar />
-      <div className="flex">
-        <Sidebar currentPage={currentPage} onPageChange={setCurrentPage} />
-        <main className="flex-1 ml-64 p-6">
-          {renderCurrentPage()}
-        </main>
-      </div>
+    <div className="min-h-screen bg-background">
+      <header className="border-b">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Panel de Control</h1>
+          <Button variant="outline" onClick={signOut}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Cerrar Sesión
+          </Button>
+        </div>
+      </header>
+      
+      <main className="container mx-auto px-4 py-8">
+        <WhatsAppConnections />
+      </main>
     </div>
   );
 };
