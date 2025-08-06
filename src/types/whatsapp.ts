@@ -1,3 +1,4 @@
+
 export interface WhatsAppConnection {
   id: string;
   user_id: string;
@@ -51,6 +52,7 @@ export interface MassCampaign {
   name: string;
   description?: string;
   whatsapp_connection_name: string;
+  contact_list_id?: string;
   campaign_message: string;
   edit_with_ai: boolean;
   min_delay: number;
