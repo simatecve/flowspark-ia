@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
@@ -12,6 +11,7 @@ import {
   BarChart3,
   Settings,
   Smartphone,
+  ContactRound,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -101,6 +101,13 @@ export function AppSidebar() {
       id: 'management',
       label: 'Gestión',
       items: [
+        {
+          id: 'contact-lists',
+          label: 'Listas de Contactos',
+          icon: ContactRound,
+          color: 'text-pink-600 dark:text-pink-400',
+          url: '/contact-lists'
+        },
         {
           id: 'leads',
           label: 'Gestión de Leads',

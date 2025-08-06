@@ -12,6 +12,7 @@ import DashboardPage from "./pages/Dashboard";
 import ConnectionsPage from "./pages/Connections";
 import MessagesPage from "./pages/Messages";
 import MassCampaigns from "./pages/MassCampaigns";
+import ContactLists from "./pages/ContactLists";
 import SettingsPage from "@/components/settings/SettingsPage";
 import { AIBotsPage } from "@/components/ai/AIBotsPage";
 import NotFound from "./pages/NotFound";
@@ -55,6 +56,7 @@ function AppContent() {
         <Route path="/connections" element={<ConnectionsPage />} />
         <Route path="/messages" element={<MessagesPage />} />
         <Route path="/campaigns" element={<MassCampaigns />} />
+        <Route path="/contact-lists" element={<ContactLists />} />
         <Route path="/bot" element={<AIBotsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFound />} />
