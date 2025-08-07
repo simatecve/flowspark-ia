@@ -4,9 +4,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface ResponseRateChartProps {
   timeFilter: string;
+  chartType: string;
 }
 
-export const ResponseRateChart = ({ timeFilter }: ResponseRateChartProps) => {
+export const ResponseRateChart = ({ timeFilter, chartType }: ResponseRateChartProps) => {
   const data = [
     { name: 'Respondidos', value: 65, color: '#10b981' },
     { name: 'Sin respuesta', value: 35, color: '#ef4444' }

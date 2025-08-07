@@ -4,9 +4,10 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recha
 
 interface CampaignStatsChartProps {
   timeFilter: string;
+  chartType: string;
 }
 
-export const CampaignStatsChart = ({ timeFilter }: CampaignStatsChartProps) => {
+export const CampaignStatsChart = ({ timeFilter, chartType }: CampaignStatsChartProps) => {
   const data = [
     {
       nombre: 'Ofertas Verano',

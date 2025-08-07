@@ -1,14 +1,19 @@
 
 import React from 'react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { useUserUsage, useUserPlan } from '@/hooks/useUserUsage';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 interface UsageChartProps {
-  userUsage: any;
-  userPlan: any;
-  dashboardData: any;
+  timeFilter: string;
+  chartType: string;
 }
 
-export const UsageChart = ({ userUsage, userPlan, dashboardData }: UsageChartProps) => {
+export const UsageChart = ({ timeFilter, chartType }: UsageChartProps) => {
+  const { data: userUsage } = useUserUsage();
+  const { data: userPlan } = useUserPlan();
+  const { data: dashboardData } = useDashboardData();
+
   const data = [
     {
       name: 'Conexiones',
