@@ -1,23 +1,15 @@
 
 import React from 'react';
-import { MessageSquare, Bell, User, Settings, LogOut } from 'lucide-react';
+import { MessageSquare, Bell, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
-  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleSettingsClick = () => {
+    navigate('/settings');
   };
 
   return (
@@ -42,39 +34,10 @@ const Navbar = () => {
           </Badge>
         </Button>
 
-        {/* Menú de usuario */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-whatsapp-500 to-saas-500 flex items-center justify-center">
-                <User className="h-4 w-4 text-white" />
-              </div>
-              <div className="hidden md:block text-left">
-                <p className="text-sm font-medium">
-                  {user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Usuario'}
-                </p>
-                <p className="text-xs text-muted-foreground">Plan Pro</p>
-              </div>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              Configuración
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              Perfil
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Cerrar Sesión
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Botón de configuración */}
+        <Button variant="ghost" size="icon" onClick={handleSettingsClick}>
+          <Settings className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

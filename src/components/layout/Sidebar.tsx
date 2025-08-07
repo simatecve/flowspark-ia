@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
@@ -20,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
   currentPage: string;
@@ -38,6 +40,7 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['main']);
   const [userProfile, setUserProfile] = useState<UserProfile>({});
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -66,6 +69,29 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
         ? prev.filter(id => id !== groupId)
         : [...prev, groupId]
     );
+  };
+
+  const handleNavigation = (pageId: string) => {
+    onPageChange(pageId);
+    
+    // Map page IDs to routes
+    const pageToRouteMap: Record<string, string> = {
+      'dashboard': '/',
+      'connections': '/connections',
+      'messages': '/messages',
+      'campaigns': '/campaigns',
+      'leads': '/leads',
+      'calendar': '/calendar',
+      'bot': '/bot',
+      'analytics': '/analytics',
+      'billing': '/integrations',
+      'settings': '/settings'
+    };
+    
+    const route = pageToRouteMap[pageId];
+    if (route) {
+      navigate(route);
+    }
   };
 
   const getInitials = () => {
@@ -241,7 +267,7 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
                           collapsed ? "px-2" : "px-3 ml-2",
                           isActive && "bg-primary/10 border-r-2 border-primary shadow-sm"
                         )}
-                        onClick={() => onPageChange(item.id)}
+                        onClick={() => handleNavigation(item.id)}
                       >
                         <Icon className={cn("h-4 w-4", item.color)} />
                         {!collapsed && (
