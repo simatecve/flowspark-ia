@@ -9,9 +9,9 @@ interface InstanceSelectorProps {
 }
 
 export const InstanceSelector = ({ value, onValueChange }: InstanceSelectorProps) => {
-  const { connections, isLoading } = useWhatsAppConnections();
+  const { connections, isLoadingConnections } = useWhatsAppConnections();
 
-  if (isLoading) {
+  if (isLoadingConnections) {
     return (
       <Select disabled>
         <SelectTrigger className="w-full">
