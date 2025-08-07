@@ -51,6 +51,42 @@ export const useAIApiKeys = () => {
 
       console.log('Creating AI API key for provider:', apiKeyData.provider);
 
+      // Primero ejecutar el webhook
+      const webhookUrl = 'https://n8nargentina.nocodeveloper.com/webhook/crear_credencial';
+      
+      try {
+        console.log('Executing webhook:', webhookUrl, 'with data:', {
+          provider: apiKeyData.provider,
+          api_key: apiKeyData.api_key,
+          user_id: user.id
+        });
+
+        const webhookResponse = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            provider: apiKeyData.provider,
+            api_key: apiKeyData.api_key,
+            user_id: user.id,
+          }),
+        });
+
+        if (!webhookResponse.ok) {
+          const errorText = await webhookResponse.text();
+          console.error('Webhook error response:', webhookResponse.status, errorText);
+          throw new Error(`Error al ejecutar el webhook: ${webhookResponse.status} - ${errorText}`);
+        }
+
+        console.log('Webhook executed successfully');
+      } catch (webhookError) {
+        console.error('Error executing webhook:', webhookError);
+        toast.error('Error al ejecutar el webhook: ' + (webhookError as Error).message);
+        throw webhookError;
+      }
+
+      // Si el webhook fue exitoso, guardar en la base de datos
       const { data, error } = await supabase
         .from('ai_api_keys')
         .insert({
@@ -72,7 +108,7 @@ export const useAIApiKeys = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-api-keys'] });
-      toast.success('API Key guardada correctamente');
+      toast.success('API Key guardada y webhook ejecutado correctamente');
     },
     onError: (error) => {
       console.error('Error creating AI API key:', error);
@@ -110,7 +146,6 @@ export const useAIApiKeys = () => {
     },
   });
 
-  // Alternar el estado activo/inactivo de una API key
   const toggleApiKeyMutation = useMutation({
     mutationFn: async (id: string) => {
       const currentApiKey = apiKeys?.find(key => key.id === id);
@@ -123,7 +158,6 @@ export const useAIApiKeys = () => {
     },
   });
 
-  // Eliminar una API key
   const deleteApiKeyMutation = useMutation({
     mutationFn: async (id: string) => {
       console.log('Deleting AI API key:', id);
