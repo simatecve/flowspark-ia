@@ -44,6 +44,23 @@ export const useAIApiKeys = () => {
     enabled: !!user,
   });
 
+  // Función para obtener el webhook de crear credencial desde la BD
+  const getCreateCredentialWebhook = async (): Promise<string> => {
+    const { data, error } = await supabase
+      .from('webhooks')
+      .select('url')
+      .eq('name', 'Crear Credencial')
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) {
+      console.error('Error fetching webhook:', error);
+      throw new Error('No se pudo obtener el webhook para crear credenciales');
+    }
+
+    return data.url;
+  };
+
   // Crear una nueva API key
   const createApiKeyMutation = useMutation({
     mutationFn: async (apiKeyData: CreateApiKeyData) => {
@@ -51,8 +68,9 @@ export const useAIApiKeys = () => {
 
       console.log('Creating AI API key for provider:', apiKeyData.provider);
 
-      // Primero ejecutar el webhook
-      const webhookUrl = 'https://n8nargentina.nocodeveloper.com/webhook/crear_credencial';
+      // Obtener la URL del webhook desde la base de datos
+      const webhookUrl = await getCreateCredentialWebhook();
+      console.log('Using webhook URL from database:', webhookUrl);
       
       try {
         console.log('Executing webhook:', webhookUrl, 'with data:', {
