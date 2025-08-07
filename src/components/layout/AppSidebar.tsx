@@ -10,7 +10,8 @@ import {
   Phone,
   Bot,
   TrendingUp,
-  Key
+  Key,
+  BarChart3
 } from 'lucide-react';
 import {
   Sidebar,
@@ -59,6 +60,11 @@ const menuItems = [
     title: 'Bot IA',
     url: '/bot',
     icon: Bot,
+  },
+  {
+    title: 'Estadísticas',
+    url: '/analytics',
+    icon: BarChart3,
   },
   {
     title: 'Integraciones',
