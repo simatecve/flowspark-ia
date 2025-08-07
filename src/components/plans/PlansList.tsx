@@ -4,29 +4,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Users, Phone, Megaphone, Bot, HardDrive } from 'lucide-react';
-import { useSubscriptionPlans, useDeletePlan } from '@/hooks/useSubscriptionPlans';
-import { EditPlanModal } from './EditPlanModal';
-import { SubscriptionPlan } from '@/types/plans';
 
 export const PlansList = () => {
-  const { data: plans, isLoading } = useSubscriptionPlans();
-  const deletePlan = useDeletePlan();
-  const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
-
-  const handleDeletePlan = (planId: string) => {
-    if (confirm('¿Estás seguro de que deseas desactivar este plan?')) {
-      deletePlan.mutate(planId);
+  // Mock data for now until we fix the database functions
+  const mockPlans = [
+    {
+      id: '1',
+      name: 'Plan Básico',
+      description: 'Ideal para pequeños negocios',
+      price: 29.99,
+      max_whatsapp_connections: 2,
+      max_contacts: 500,
+      max_monthly_campaigns: 3,
+      max_bot_responses: 1000,
+      max_storage_mb: 500,
+    },
+    {
+      id: '2',
+      name: 'Plan Pro',
+      description: 'Para empresas en crecimiento',
+      price: 79.99,
+      max_whatsapp_connections: 5,
+      max_contacts: 2000,
+      max_monthly_campaigns: 10,
+      max_bot_responses: 5000,
+      max_storage_mb: 2000,
     }
-  };
-
-  if (isLoading) {
-    return <div>Cargando planes...</div>;
-  }
+  ];
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {plans?.map((plan) => (
+        {mockPlans.map((plan) => (
           <Card key={plan.id} className="relative">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -63,7 +72,6 @@ export const PlansList = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setEditingPlan(plan)}
                   className="flex-1"
                 >
                   <Edit className="h-4 w-4 mr-1" />
@@ -72,8 +80,6 @@ export const PlansList = () => {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDeletePlan(plan.id)}
-                  disabled={deletePlan.isPending}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -82,13 +88,6 @@ export const PlansList = () => {
           </Card>
         ))}
       </div>
-
-      {editingPlan && (
-        <EditPlanModal
-          plan={editingPlan}
-          onClose={() => setEditingPlan(null)}
-        />
-      )}
     </div>
   );
 };

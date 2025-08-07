@@ -34,7 +34,6 @@ interface UserProfile {
   first_name?: string;
   last_name?: string;
   company_name?: string;
-  plan_id?: string;
 }
 
 const Sidebar = ({ currentPage, onPageChange, collapsed, onToggleCollapsed }: SidebarProps) => {
@@ -53,20 +52,17 @@ const Sidebar = ({ currentPage, onPageChange, collapsed, onToggleCollapsed }: Si
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          first_name, 
-          last_name, 
-          company_name, 
-          plan_id,
-          subscription_plans (name)
-        `)
+        .select('first_name, last_name, company_name')
         .eq('id', user?.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
+      
       if (data) {
         setUserProfile(data);
-        setPlanName(data.subscription_plans?.name || 'Plan Pro');
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);

@@ -15,27 +15,22 @@ export const useUserUsage = () => {
       if (!user) throw new Error('User not authenticated');
 
       const currentMonth = new Date();
-      currentMonth.setDate(1); // Primer día del mes
+      currentMonth.setDate(1);
       
-      const { data, error } = await supabase
-        .from('user_usage')
-        .select(`
-          *,
-          subscription_plans (*)
-        `)
-        .eq('user_id', user.id)
-        .eq('usage_month', currentMonth.toISOString().split('T')[0])
-        .single();
+      const { data, error } = await supabase.rpc('get_user_usage', {
+        p_user_id: user.id,
+        p_usage_month: currentMonth.toISOString().split('T')[0]
+      });
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching user usage:', error);
         throw error;
       }
 
-      return data || null;
+      return data as UserUsage || null;
     },
     enabled: !!user,
-    refetchInterval: 30000 // Actualizar cada 30 segundos
+    refetchInterval: 30000
   });
 };
 
@@ -49,21 +44,16 @@ export const useUserPlan = () => {
       
       if (!user) throw new Error('User not authenticated');
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          plan_id,
-          subscription_plans (*)
-        `)
-        .eq('id', user.id)
-        .single();
+      const { data, error } = await supabase.rpc('get_user_plan', {
+        p_user_id: user.id
+      });
 
       if (error) {
         console.error('Error fetching user plan:', error);
         throw error;
       }
 
-      return data?.subscription_plans || null;
+      return data || null;
     },
     enabled: !!user
   });

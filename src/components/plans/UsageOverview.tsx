@@ -4,117 +4,111 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Phone, Users, Megaphone, Bot, HardDrive } from 'lucide-react';
-import { useUserUsage, useUserPlan } from '@/hooks/useUserUsage';
 
 export const UsageOverview = () => {
-  const { data: usage, isLoading: usageLoading } = useUserUsage();
-  const { data: plan, isLoading: planLoading } = useUserPlan();
-
-  if (usageLoading || planLoading) {
-    return <div>Cargando información de uso...</div>;
-  }
-
-  if (!plan) {
-    return (
-      <Card>
-        <CardContent className="py-8">
-          <div className="text-center">
-            <p className="text-muted-foreground">No tienes un plan asignado</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const usageData = [
-    {
-      label: 'Conexiones WhatsApp',
-      icon: Phone,
-      used: usage?.whatsapp_connections_used || 0,
-      limit: plan.max_whatsapp_connections,
-      color: 'text-emerald-600',
-    },
-    {
-      label: 'Contactos',
-      icon: Users,
-      used: usage?.contacts_used || 0,
-      limit: plan.max_contacts,
-      color: 'text-blue-600',
-    },
-    {
-      label: 'Campañas este mes',
-      icon: Megaphone,
-      used: usage?.campaigns_this_month || 0,
-      limit: plan.max_monthly_campaigns,
-      color: 'text-orange-600',
-    },
-    {
-      label: 'Respuestas Bot este mes',
-      icon: Bot,
-      used: usage?.bot_responses_this_month || 0,
-      limit: plan.max_bot_responses,
-      color: 'text-green-600',
-    },
-    {
-      label: 'Almacenamiento',
-      icon: HardDrive,
-      used: usage?.storage_used_mb || 0,
-      limit: plan.max_storage_mb,
-      color: 'text-purple-600',
-      unit: 'MB',
-    },
-  ];
-
+  // For now, show a placeholder since we need to fix the database functions first
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            Plan Actual: {plan.name}
-            <Badge variant="secondary">${plan.price}/mes</Badge>
+            Plan Actual: Plan Pro
+            <Badge variant="secondary">$79.99/mes</Badge>
           </CardTitle>
-          <CardDescription>{plan.description}</CardDescription>
+          <CardDescription>Para empresas en crecimiento</CardDescription>
         </CardHeader>
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {usageData.map((item) => {
-          const Icon = item.icon;
-          const percentage = (item.used / item.limit) * 100;
-          const isNearLimit = percentage >= 80;
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Phone className="h-4 w-4 text-emerald-600" />
+              Conexiones WhatsApp
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>0 / 5</span>
+                <span className="text-muted-foreground">0.0%</span>
+              </div>
+              <Progress value={0} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
 
-          return (
-            <Card key={item.label}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Icon className={`h-4 w-4 ${item.color}`} />
-                  {item.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>
-                      {item.used.toLocaleString()} / {item.limit.toLocaleString()} {item.unit || ''}
-                    </span>
-                    <span className={isNearLimit ? 'text-destructive' : 'text-muted-foreground'}>
-                      {percentage.toFixed(1)}%
-                    </span>
-                  </div>
-                  <Progress 
-                    value={percentage} 
-                    className="h-2"
-                  />
-                  {isNearLimit && (
-                    <p className="text-xs text-destructive">
-                      ⚠️ Cerca del límite
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Users className="h-4 w-4 text-blue-600" />
+              Contactos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>0 / 2,000</span>
+                <span className="text-muted-foreground">0.0%</span>
+              </div>
+              <Progress value={0} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Megaphone className="h-4 w-4 text-orange-600" />
+              Campañas este mes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>0 / 10</span>
+                <span className="text-muted-foreground">0.0%</span>
+              </div>
+              <Progress value={0} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Bot className="h-4 w-4 text-green-600" />
+              Respuestas Bot este mes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>0 / 5,000</span>
+                <span className="text-muted-foreground">0.0%</span>
+              </div>
+              <Progress value={0} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <HardDrive className="h-4 w-4 text-purple-600" />
+              Almacenamiento
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>0 / 2,000 MB</span>
+                <span className="text-muted-foreground">0.0%</span>
+              </div>
+              <Progress value={0} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

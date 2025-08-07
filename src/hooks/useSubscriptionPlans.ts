@@ -13,18 +13,25 @@ export const useSubscriptionPlans = () => {
     queryFn: async (): Promise<SubscriptionPlan[]> => {
       console.log('Fetching subscription plans');
       
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('is_active', true)
-        .order('price', { ascending: true });
+      const { data, error } = await supabase.rpc('get_subscription_plans');
 
       if (error) {
         console.error('Error fetching subscription plans:', error);
-        throw error;
+        // Fallback to direct query if RPC doesn't exist
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('subscription_plans' as any)
+          .select('*')
+          .eq('is_active', true)
+          .order('price', { ascending: true });
+        
+        if (fallbackError) {
+          throw fallbackError;
+        }
+        
+        return (fallbackData || []) as SubscriptionPlan[];
       }
 
-      return data || [];
+      return (data || []) as SubscriptionPlan[];
     }
   });
 };
@@ -36,18 +43,16 @@ export const useCreatePlan = () => {
     mutationFn: async (planData: CreatePlanData): Promise<SubscriptionPlan> => {
       console.log('Creating subscription plan:', planData);
       
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .insert([planData])
-        .select()
-        .single();
+      const { data, error } = await supabase.rpc('create_subscription_plan', {
+        plan_data: planData
+      });
 
       if (error) {
         console.error('Error creating subscription plan:', error);
         throw error;
       }
 
-      return data;
+      return data as SubscriptionPlan;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
@@ -67,20 +72,17 @@ export const useUpdatePlan = () => {
     mutationFn: async (planData: UpdatePlanData): Promise<SubscriptionPlan> => {
       console.log('Updating subscription plan:', planData);
       
-      const { id, ...updateData } = planData;
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single();
+      const { data, error } = await supabase.rpc('update_subscription_plan', {
+        plan_id: planData.id,
+        plan_data: planData
+      });
 
       if (error) {
         console.error('Error updating subscription plan:', error);
         throw error;
       }
 
-      return data;
+      return data as SubscriptionPlan;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
@@ -100,10 +102,9 @@ export const useDeletePlan = () => {
     mutationFn: async (planId: string): Promise<void> => {
       console.log('Deactivating subscription plan:', planId);
       
-      const { error } = await supabase
-        .from('subscription_plans')
-        .update({ is_active: false })
-        .eq('id', planId);
+      const { error } = await supabase.rpc('deactivate_subscription_plan', {
+        plan_id: planId
+      });
 
       if (error) {
         console.error('Error deactivating subscription plan:', error);

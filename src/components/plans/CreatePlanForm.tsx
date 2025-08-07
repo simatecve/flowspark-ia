@@ -12,7 +12,7 @@ import { useCreatePlan } from '@/hooks/useSubscriptionPlans';
 
 const createPlanSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
-  description: z.string().optional(),
+  description: z.string().optional().default(''),
   price: z.number().min(0, 'El precio debe ser mayor o igual a 0'),
   max_whatsapp_connections: z.number().min(1, 'Debe permitir al menos 1 conexión'),
   max_contacts: z.number().min(1, 'Debe permitir al menos 1 contacto'),
@@ -34,6 +34,8 @@ export const CreatePlanForm = () => {
   } = useForm<CreatePlanFormData>({
     resolver: zodResolver(createPlanSchema),
     defaultValues: {
+      name: '',
+      description: '',
       price: 0,
       max_whatsapp_connections: 1,
       max_contacts: 100,
@@ -44,7 +46,18 @@ export const CreatePlanForm = () => {
   });
 
   const onSubmit = (data: CreatePlanFormData) => {
-    createPlan.mutate(data, {
+    const planData = {
+      name: data.name,
+      description: data.description || '',
+      price: data.price,
+      max_whatsapp_connections: data.max_whatsapp_connections,
+      max_contacts: data.max_contacts,
+      max_monthly_campaigns: data.max_monthly_campaigns,
+      max_bot_responses: data.max_bot_responses,
+      max_storage_mb: data.max_storage_mb,
+    };
+    
+    createPlan.mutate(planData, {
       onSuccess: () => {
         reset();
       }
