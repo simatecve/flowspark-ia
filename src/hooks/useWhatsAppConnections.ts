@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -149,12 +150,12 @@ export const useWhatsAppConnections = () => {
 
       console.log('Webhook executed successfully, saving to database');
 
-      // Si el webhook fue exitoso, guardar en la base de datos con estado 'desconectado'
+      // Si el webhook fue exitoso, guardar en la base de datos con el color seleccionado
       const { data, error } = await supabase
         .from('whatsapp_connections')
         .insert({
           name: connectionData.name,
-          color: '#ef4444', // Color rojo por defecto para conexiones desconectadas
+          color: connectionData.color, // Usar el color seleccionado por el usuario
           phone_number: connectionData.phone_number,
           user_id: user.id,
           status: 'desconectado',
