@@ -61,16 +61,21 @@ export const CreateAIApiKeyModal: React.FC<CreateAIApiKeyModalProps> = ({
 
   const onSubmit = (values: FormData) => {
     console.log('Creating API key with values:', values);
-    createKey(values);
+    // Now TypeScript knows that values.provider is definitely defined
+    createKey({
+      provider: values.provider,
+      api_key: values.api_key,
+      is_active: values.is_active,
+    });
     form.reset();
     onOpenChange(false);
   };
 
   const providerOptions = [
-    { value: 'openai', label: 'OpenAI' },
-    { value: 'gemini', label: 'Google Gemini' },
-    { value: 'groq', label: 'Groq' },
-    { value: 'anthropic', label: 'Anthropic' },
+    { value: 'openai' as const, label: 'OpenAI' },
+    { value: 'gemini' as const, label: 'Google Gemini' },
+    { value: 'groq' as const, label: 'Groq' },
+    { value: 'anthropic' as const, label: 'Anthropic' },
   ];
 
   return (
