@@ -27,7 +27,7 @@ export const useConversations = (instanceName?: string) => {
           unread_count,
           created_at,
           updated_at,
-          messages!inner(instance_name, direction, message, created_at)
+          messages!inner(instance_name, direction, message, created_at, pushname)
         `)
         .or(user ? `user_id.eq.${user.id},user_id.is.null` : 'user_id.is.null')
         .order('last_message_at', { ascending: false });
@@ -52,12 +52,20 @@ export const useConversations = (instanceName?: string) => {
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )[0];
 
+        // Obtener el pushname del primer mensaje incoming (contacto que inició la conversación)
+        const firstIncomingMessage = incomingMessages.sort((a: any, b: any) => 
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )[0];
+
+        // El pushname debe ser siempre del contacto (incoming), no del usuario que envía (outgoing)
+        const contactPushname = firstIncomingMessage?.pushname || conv.pushname;
+
         return {
           id: conv.id,
           user_id: conv.user_id,
           instance_name: conv.messages?.[0]?.instance_name || '',
           whatsapp_number: conv.whatsapp_number,
-          pushname: conv.pushname, // El pushname siempre representa al contacto (WhatsApp number)
+          pushname: contactPushname, // Siempre el pushname del contacto (incoming)
           last_message: lastIncomingMessage?.message || '', // Solo mostrar mensajes incoming
           last_message_at: lastIncomingMessage?.created_at || conv.last_message_at,
           unread_count: conv.unread_count,
