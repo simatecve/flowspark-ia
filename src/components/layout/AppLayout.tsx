@@ -1,8 +1,8 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import { useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -10,6 +10,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
   const [currentPage, setCurrentPage] = useState(() => {
     // Map routes to page IDs
     const routeToPageMap: Record<string, string> = {
@@ -21,13 +22,35 @@ export function AppLayout({ children }: AppLayoutProps) {
       '/leads': 'leads',
       '/bot': 'bot',
       '/integrations': 'integrations',
+      '/plans': 'plans',
       '/settings': 'settings',
     };
     return routeToPageMap[location.pathname] || 'dashboard';
   });
 
+  // Update current page when location changes
+  useEffect(() => {
+    const routeToPageMap: Record<string, string> = {
+      '/': 'dashboard',
+      '/connections': 'connections',
+      '/messages': 'messages',
+      '/campaigns': 'campaigns',
+      '/contact-lists': 'contact-lists',
+      '/leads': 'leads',
+      '/bot': 'bot',
+      '/integrations': 'integrations',
+      '/plans': 'plans',
+      '/settings': 'settings',
+    };
+    setCurrentPage(routeToPageMap[location.pathname] || 'dashboard');
+  }, [location.pathname]);
+
   const handlePageChange = (page: string) => {
     setCurrentPage(page);
+  };
+
+  const handleToggleCollapsed = (newCollapsed: boolean) => {
+    setCollapsed(newCollapsed);
   };
 
   return (
@@ -41,10 +64,18 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       <div className="flex">
         {/* Sidebar */}
-        <Sidebar currentPage={currentPage} onPageChange={handlePageChange} />
+        <Sidebar 
+          currentPage={currentPage} 
+          onPageChange={handlePageChange}
+          collapsed={collapsed}
+          onToggleCollapsed={handleToggleCollapsed}
+        />
         
         {/* Main content */}
-        <main className="flex-1 ml-64 overflow-auto">
+        <main className={cn(
+          "flex-1 overflow-auto transition-all duration-300",
+          collapsed ? "ml-16" : "ml-64"
+        )}>
           <div className="container mx-auto p-6">
             {children}
           </div>

@@ -12,7 +12,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Smartphone,
-  TrendingUp
+  TrendingUp,
+  Key,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,18 +26,20 @@ import { useNavigate } from 'react-router-dom';
 interface SidebarProps {
   currentPage: string;
   onPageChange: (page: string) => void;
+  collapsed: boolean;
+  onToggleCollapsed: (collapsed: boolean) => void;
 }
 
 interface UserProfile {
   first_name?: string;
   last_name?: string;
   company_name?: string;
-  plan_type?: string;
+  plan_id?: string;
 }
 
-const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+const Sidebar = ({ currentPage, onPageChange, collapsed, onToggleCollapsed }: SidebarProps) => {
   const [userProfile, setUserProfile] = useState<UserProfile>({});
+  const [planName, setPlanName] = useState<string>('Plan Pro');
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -49,12 +53,21 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('first_name, last_name, company_name, plan_type')
+        .select(`
+          first_name, 
+          last_name, 
+          company_name, 
+          plan_id,
+          subscription_plans (name)
+        `)
         .eq('id', user?.id)
         .single();
 
       if (error) throw error;
-      if (data) setUserProfile(data);
+      if (data) {
+        setUserProfile(data);
+        setPlanName(data.subscription_plans?.name || 'Plan Pro');
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
     }
@@ -74,6 +87,7 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
       'bot': '/bot',
       'analytics': '/analytics',
       'integrations': '/integrations',
+      'plans': '/plans',
       'settings': '/settings'
     };
     
@@ -93,17 +107,7 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
     if (userProfile.first_name && userProfile.last_name) {
       return `${userProfile.first_name} ${userProfile.last_name}`;
     }
-    return user?.email?.split('@')[0] || 'demo';
-  };
-
-  const getPlanDisplay = () => {
-    const plan = userProfile.plan_type || 'pro';
-    const planNames = {
-      basic: 'Plan Básico',
-      pro: 'Plan Pro',
-      enterprise: 'Plan Enterprise'
-    };
-    return planNames[plan as keyof typeof planNames] || 'Plan Pro';
+    return user?.email?.split('@')[0] || 'Usuario';
   };
 
   const menuGroups = [
@@ -124,6 +128,12 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
       label: 'Comunicación',
       items: [
         {
+          id: 'connections',
+          label: 'Conexiones WhatsApp',
+          icon: Smartphone,
+          color: 'text-emerald-600'
+        },
+        {
           id: 'messages',
           label: 'Mensajería',
           icon: MessageCircle,
@@ -134,12 +144,6 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
           label: 'Campañas Masivas',
           icon: Megaphone,
           color: 'text-orange-600'
-        },
-        {
-          id: 'connections',
-          label: 'Conexiones WhatsApp',
-          icon: Smartphone,
-          color: 'text-emerald-600'
         }
       ]
     },
@@ -176,6 +180,12 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
           label: 'Bot IA',
           icon: Bot,
           color: 'text-green-600'
+        },
+        {
+          id: 'integrations',
+          label: 'Integraciones IA',
+          icon: Key,
+          color: 'text-indigo-600'
         }
       ]
     },
@@ -188,6 +198,24 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
           label: 'Estadísticas',
           icon: BarChart3,
           color: 'text-cyan-600'
+        }
+      ]
+    },
+    {
+      id: 'admin',
+      label: 'Administración',
+      items: [
+        {
+          id: 'plans',
+          label: 'Gestión de Planes',
+          icon: CreditCard,
+          color: 'text-yellow-600'
+        },
+        {
+          id: 'settings',
+          label: 'Configuración',
+          icon: Settings,
+          color: 'text-gray-600'
         }
       ]
     }
@@ -204,7 +232,7 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => onToggleCollapsed(!collapsed)}
             className="h-8 w-8"
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -270,7 +298,7 @@ const Sidebar = ({ currentPage, onPageChange }: SidebarProps) => {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{getDisplayName()}</p>
-                <p className="text-xs text-muted-foreground truncate">{getPlanDisplay()}</p>
+                <p className="text-xs text-muted-foreground truncate">{planName}</p>
               </div>
             </div>
           )}
