@@ -10,6 +10,7 @@ export interface SubscriptionPlan {
   max_bot_responses: number;
   max_storage_mb: number;
   max_device_sessions: number;
+  max_conversations: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -25,6 +26,7 @@ export interface CreatePlanData {
   max_bot_responses: number;
   max_storage_mb: number;
   max_device_sessions: number;
+  max_conversations: number;
 }
 
 export interface UpdatePlanData {
@@ -38,6 +40,7 @@ export interface UpdatePlanData {
   max_bot_responses: number;
   max_storage_mb: number;
   max_device_sessions: number;
+  max_conversations: number;
 }
 
 export interface UserUsage {
@@ -50,6 +53,7 @@ export interface UserUsage {
   bot_responses_this_month: number;
   storage_used_mb: number;
   device_sessions_used: number;
+  conversations_used: number;
   usage_month: string;
   created_at: string;
   updated_at: string;

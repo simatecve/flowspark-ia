@@ -17,6 +17,12 @@ export const UsageChart = ({ userUsage, userPlan, dashboardData }: UsageChartPro
       porcentaje: Math.round(((dashboardData?.activeConnections || 0) / (userPlan?.max_whatsapp_connections || 2)) * 100)
     },
     {
+      name: 'Conversaciones',
+      usado: dashboardData?.conversationsCount || 0,
+      limite: userPlan?.max_conversations || 50,
+      porcentaje: Math.round(((dashboardData?.conversationsCount || 0) / (userPlan?.max_conversations || 50)) * 100)
+    },
+    {
       name: 'Contactos',
       usado: dashboardData?.contactsCount || 0,
       limite: userPlan?.max_contacts || 500,
@@ -24,9 +30,9 @@ export const UsageChart = ({ userUsage, userPlan, dashboardData }: UsageChartPro
     },
     {
       name: 'Campañas',
-      usado: userUsage?.campaigns_this_month || 0,
+      usado: dashboardData?.totalCampaigns || 0,
       limite: userPlan?.max_monthly_campaigns || 3,
-      porcentaje: Math.round(((userUsage?.campaigns_this_month || 0) / (userPlan?.max_monthly_campaigns || 3)) * 100)
+      porcentaje: Math.round(((dashboardData?.totalCampaigns || 0) / (userPlan?.max_monthly_campaigns || 3)) * 100)
     },
     {
       name: 'Bot',

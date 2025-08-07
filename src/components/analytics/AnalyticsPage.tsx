@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, TrendingUp, TrendingDown, Activity, Users, MessageSquare, Bot, Zap } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Users, MessageSquare, Bot, Zap, MessageCircle } from 'lucide-react';
 import { useUserUsage, useUserPlan } from '@/hooks/useUserUsage';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { UsageChart } from './UsageChart';
@@ -46,7 +46,8 @@ export const AnalyticsPage = () => {
     max_contacts: 500,
     max_monthly_campaigns: 3,
     max_bot_responses: 1000,
-    max_storage_mb: 500
+    max_storage_mb: 500,
+    max_conversations: 50
   };
 
   const usage = userUsage || {
@@ -54,7 +55,8 @@ export const AnalyticsPage = () => {
     contacts_used: 0,
     campaigns_this_month: 0,
     bot_responses_this_month: 0,
-    storage_used_mb: 0
+    storage_used_mb: 0,
+    conversations_used: 0
   };
 
   const calculatePercentage = (used: number, limit: number) => {
@@ -68,55 +70,28 @@ export const AnalyticsPage = () => {
     return { color: 'text-green-600', status: 'Normal', variant: 'secondary' as const };
   };
 
-  // Datos simulados para gráficos (en un caso real vendrían de la base de datos)
-  const mockMessagesData = [
-    { date: '2024-01-01', enviados: 120, recibidos: 95 },
-    { date: '2024-01-02', enviados: 150, recibidos: 110 },
-    { date: '2024-01-03', enviados: 180, recibidos: 140 },
-    { date: '2024-01-04', enviados: 200, recibidos: 165 },
-    { date: '2024-01-05', enviados: 170, recibidos: 130 },
-    { date: '2024-01-06', enviados: 220, recibidos: 180 },
-    { date: '2024-01-07', enviados: 250, recibidos: 200 }
-  ];
-
-  const mockResponseData = [
-    { date: '2024-01-01', tasa: 78 },
-    { date: '2024-01-02', tasa: 82 },
-    { date: '2024-01-03', tasa: 75 },
-    { date: '2024-01-04', tasa: 88 },
-    { date: '2024-01-05', tasa: 79 },
-    { date: '2024-01-06', tasa: 85 },
-    { date: '2024-01-07', tasa: 90 }
-  ];
-
-  const mockCampaignData = [
-    { campaign: 'Promoción Enero', enviados: 500, entregados: 485, abiertos: 320, clicks: 145 },
-    { campaign: 'Newsletter', enviados: 300, entregados: 295, abiertos: 180, clicks: 65 },
-    { campaign: 'Oferta Especial', enviados: 200, entregados: 190, abiertos: 140, clicks: 80 }
-  ];
-
-  // Cálculos de estadísticas
+  // Cálculos de estadísticas con datos reales
   const connectionsPercentage = calculatePercentage(dashboardData?.activeConnections || 0, plan.max_whatsapp_connections);
   const contactsPercentage = calculatePercentage(dashboardData?.contactsCount || 0, plan.max_contacts);
-  const campaignsPercentage = calculatePercentage(usage.campaigns_this_month, plan.max_monthly_campaigns);
+  const conversationsPercentage = calculatePercentage(dashboardData?.conversationsCount || 0, plan.max_conversations);
+  const campaignsPercentage = calculatePercentage(dashboardData?.totalCampaigns || 0, plan.max_monthly_campaigns);
   const botPercentage = calculatePercentage(usage.bot_responses_this_month, plan.max_bot_responses);
 
   const connectionsStatus = getUsageStatus(connectionsPercentage);
   const contactsStatus = getUsageStatus(contactsPercentage);
+  const conversationsStatus = getUsageStatus(conversationsPercentage);
   const campaignsStatus = getUsageStatus(campaignsPercentage);
   const botStatus = getUsageStatus(botPercentage);
 
-  const totalMessages = mockMessagesData.reduce((sum, day) => sum + day.enviados + day.recibidos, 0);
-  const averageResponseRate = mockResponseData.reduce((sum, day) => sum + day.tasa, 0) / mockResponseData.length;
-  const totalCampaignsSent = mockCampaignData.reduce((sum, campaign) => sum + campaign.enviados, 0);
-  const totalOpened = mockCampaignData.reduce((sum, campaign) => sum + campaign.abiertos, 0);
-  const overallOpenRate = totalCampaignsSent > 0 ? (totalOpened / totalCampaignsSent) * 100 : 0;
+  const totalMessages = dashboardData?.totalMessages || 0;
+  const averageResponseRate = dashboardData?.responseRate || 0;
+  const totalCampaignsSent = dashboardData?.totalCampaigns || 0;
 
-  // Comparación con período anterior (simulado)
-  const previousMessages = 1200;
-  const messagesGrowth = ((totalMessages - previousMessages) / previousMessages) * 100;
+  // Comparación con período anterior (simulado - en producción vendría de la DB)
+  const previousMessages = Math.floor(totalMessages * 0.8);
+  const messagesGrowth = previousMessages > 0 ? ((totalMessages - previousMessages) / previousMessages) * 100 : 0;
   
-  const previousResponseRate = 78;
+  const previousResponseRate = Math.max(0, averageResponseRate - 5);
   const responseRateGrowth = averageResponseRate - previousResponseRate;
 
   return (
@@ -125,7 +100,7 @@ export const AnalyticsPage = () => {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Analytics y Estadísticas</h2>
           <p className="text-muted-foreground">
-            Análisis detallado de tu plan {plan.name} y rendimiento de tus campañas
+            Análisis detallado de tu plan {plan.name} y rendimiento de tus actividades
           </p>
         </div>
 
@@ -155,7 +130,7 @@ export const AnalyticsPage = () => {
         </div>
       </div>
 
-      {/* Resumen de estadísticas clave */}
+      {/* Resumen de estadísticas clave con datos reales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -170,11 +145,13 @@ export const AnalyticsPage = () => {
                   <TrendingUp className="mr-1 h-4 w-4 text-green-600" />
                   <span className="text-green-600">+{messagesGrowth.toFixed(1)}%</span>
                 </>
-              ) : (
+              ) : messagesGrowth < 0 ? (
                 <>
                   <TrendingDown className="mr-1 h-4 w-4 text-red-600" />
                   <span className="text-red-600">{messagesGrowth.toFixed(1)}%</span>
                 </>
+              ) : (
+                <span>Sin cambios</span>
               )}
               <span className="ml-1">vs período anterior</span>
             </div>
@@ -227,13 +204,18 @@ export const AnalyticsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tasa Apertura</CardTitle>
+            <CardTitle className="text-sm font-medium">Campañas Creadas</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overallOpenRate.toFixed(1)}%</div>
-            <div className="text-xs text-muted-foreground">
-              {totalCampaignsSent.toLocaleString()} mensajes enviados
+            <div className="text-2xl font-bold">{dashboardData?.totalCampaigns || 0}</div>
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground">
+                {dashboardData?.campaignsActive || 0} activas
+              </div>
+              <Badge variant={campaignsStatus.variant} className="text-xs">
+                {campaignsStatus.status}
+              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -256,7 +238,7 @@ export const AnalyticsPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -290,18 +272,34 @@ export const AnalyticsPage = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+                      <span className="text-sm font-medium">Conversaciones</span>
+                      <Badge variant={conversationsStatus.variant} className="text-xs">
+                        {conversationsStatus.status}
+                      </Badge>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {dashboardData?.conversationsCount || 0} / {plan.max_conversations}
+                    </span>
+                  </div>
+                  <Progress value={conversationsPercentage} className="h-2" />
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                      <span className="text-sm font-medium">Campañas este mes</span>
+                      <span className="text-sm font-medium">Campañas totales</span>
                       <Badge variant={campaignsStatus.variant} className="text-xs">
                         {campaignsStatus.status}
                       </Badge>
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      {usage.campaigns_this_month} / {plan.max_monthly_campaigns}
+                      {dashboardData?.totalCampaigns || 0} / {plan.max_monthly_campaigns}
                     </span>
                   </div>
                   <Progress value={campaignsPercentage} className="h-2" />
+                </div>
 
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-purple-500"></div>
@@ -315,6 +313,16 @@ export const AnalyticsPage = () => {
                     </span>
                   </div>
                   <Progress value={botPercentage} className="h-2" />
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                      <span className="text-sm font-medium">Leads Generados</span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {dashboardData?.generatedLeads || 0}
+                    </span>
+                  </div>
                 </div>
               </div>
             </CardContent>

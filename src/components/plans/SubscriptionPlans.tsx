@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Phone, Users, Megaphone, Bot, HardDrive, Monitor } from 'lucide-react';
+import { Check, Phone, Users, Megaphone, Bot, HardDrive, Monitor, MessageCircle } from 'lucide-react';
 import { useSubscriptionPlans } from '@/hooks/useSubscriptionPlans';
 import { useUserPlan } from '@/hooks/useUserUsage';
 import { useUpdateUserPlan } from '@/hooks/useUpdateUserPlan';
@@ -71,6 +71,10 @@ export const SubscriptionPlans = () => {
                   <div className="flex items-center gap-2 text-sm">
                     <Phone className="h-4 w-4 text-emerald-600" />
                     <span>{plan.max_whatsapp_connections} conexiones WhatsApp</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <MessageCircle className="h-4 w-4 text-blue-600" />
+                    <span>{plan.max_conversations.toLocaleString()} conversaciones</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Users className="h-4 w-4 text-blue-600" />

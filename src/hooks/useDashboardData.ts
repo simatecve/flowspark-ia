@@ -10,6 +10,9 @@ export interface DashboardStats {
   responseRate: number;
   campaignsActive: number;
   contactsCount: number;
+  conversationsCount: number;
+  totalMessages: number;
+  totalCampaigns: number;
 }
 
 export const useDashboardData = () => {
@@ -26,23 +29,33 @@ export const useDashboardData = () => {
       const { data: connections, error: connectionsError } = await supabase
         .from('whatsapp_connections')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'connected');
+        .eq('user_id', user.id);
 
       if (connectionsError) {
         console.error('Error fetching connections:', connectionsError);
       }
 
-      // Obtener mensajes enviados
-      const { data: messages, error: messagesError } = await supabase
+      const activeConnections = connections?.filter(conn => conn.status === 'connected' || conn.status === 'conectado').length || 0;
+
+      // Obtener todos los mensajes del usuario
+      const { data: allMessages, error: allMessagesError } = await supabase
         .from('messages')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('direction', 'outgoing');
+        .eq('user_id', user.id);
 
-      if (messagesError) {
-        console.error('Error fetching messages:', messagesError);
+      if (allMessagesError) {
+        console.error('Error fetching all messages:', allMessagesError);
       }
+
+      // Mensajes enviados (outgoing)
+      const sentMessages = allMessages?.filter(msg => msg.direction === 'outgoing').length || 0;
+      
+      // Mensajes recibidos (incoming) para calcular tasa de respuesta
+      const receivedMessages = allMessages?.filter(msg => msg.direction === 'incoming').length || 0;
+      const totalMessages = allMessages?.length || 0;
+
+      // Calcular tasa de respuesta
+      const responseRate = sentMessages > 0 ? Math.round((receivedMessages / sentMessages) * 100) : 0;
 
       // Obtener leads
       const { data: leads, error: leadsError } = await supabase
@@ -54,16 +67,19 @@ export const useDashboardData = () => {
         console.error('Error fetching leads:', leadsError);
       }
 
-      // Obtener campañas activas
-      const { data: campaigns, error: campaignsError } = await supabase
+      // Obtener todas las campañas
+      const { data: allCampaigns, error: allCampaignsError } = await supabase
         .from('mass_campaigns')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active');
+        .eq('user_id', user.id);
 
-      if (campaignsError) {
-        console.error('Error fetching campaigns:', campaignsError);
+      if (allCampaignsError) {
+        console.error('Error fetching all campaigns:', allCampaignsError);
       }
+
+      // Campañas activas
+      const campaignsActive = allCampaigns?.filter(campaign => campaign.status === 'active').length || 0;
+      const totalCampaigns = allCampaigns?.length || 0;
 
       // Obtener contactos
       const { data: contacts, error: contactsError } = await supabase
@@ -75,24 +91,26 @@ export const useDashboardData = () => {
         console.error('Error fetching contacts:', contactsError);
       }
 
-      // Calcular tasa de respuesta (simplificado)
-      const incomingMessages = await supabase
-        .from('messages')
+      // Obtener conversaciones
+      const { data: conversations, error: conversationsError } = await supabase
+        .from('conversations')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('direction', 'incoming');
+        .eq('user_id', user.id);
 
-      const responseRate = messages?.length && incomingMessages.data?.length 
-        ? Math.round((incomingMessages.data.length / messages.length) * 100)
-        : 0;
+      if (conversationsError) {
+        console.error('Error fetching conversations:', conversationsError);
+      }
 
       return {
-        activeConnections: connections?.length || 0,
-        sentMessages: messages?.length || 0,
+        activeConnections,
+        sentMessages,
         generatedLeads: leads?.length || 0,
         responseRate,
-        campaignsActive: campaigns?.length || 0,
-        contactsCount: contacts?.length || 0
+        campaignsActive,
+        contactsCount: contacts?.length || 0,
+        conversationsCount: conversations?.length || 0,
+        totalMessages,
+        totalCampaigns
       };
     },
     enabled: !!user,
