@@ -21,7 +21,7 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   console.log('AuthProvider: Initializing component');
   
   const [user, setUser] = useState<User | null>(null);
@@ -70,12 +70,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = {
+  const value = React.useMemo(() => ({
     user,
     session,
     loading,
     signOut
-  };
+  }), [user, session, loading]);
 
   return (
     <AuthContext.Provider value={value}>

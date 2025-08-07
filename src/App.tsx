@@ -81,8 +81,8 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+    <TooltipProvider>
+      <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <BrowserRouter>
             <AppContent />
@@ -90,8 +90,8 @@ function App() {
           <Toaster />
           <Sonner />
         </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </TooltipProvider>
   );
 }
 
