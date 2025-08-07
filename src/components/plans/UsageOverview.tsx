@@ -4,18 +4,69 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Phone, Users, Megaphone, Bot, HardDrive } from 'lucide-react';
+import { useUserUsage, useUserPlan } from '@/hooks/useUserUsage';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 export const UsageOverview = () => {
-  // For now, show a placeholder since we need to fix the database functions first
+  const { data: userUsage, isLoading: usageLoading } = useUserUsage();
+  const { data: userPlan, isLoading: planLoading } = useUserPlan();
+  const { data: dashboardData, isLoading: dashboardLoading } = useDashboardData();
+
+  if (usageLoading || planLoading || dashboardLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-24 bg-gray-200 rounded-lg mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const plan = userPlan || {
+    name: 'Plan Básico',
+    price: 29.99,
+    max_whatsapp_connections: 2,
+    max_contacts: 500,
+    max_monthly_campaigns: 3,
+    max_bot_responses: 1000,
+    max_storage_mb: 500
+  };
+
+  const usage = userUsage || {
+    whatsapp_connections_used: 0,
+    contacts_used: 0,
+    campaigns_this_month: 0,
+    bot_responses_this_month: 0,
+    storage_used_mb: 0
+  };
+
+  const calculatePercentage = (used: number, limit: number) => {
+    if (limit === 0) return 0;
+    return Math.min((used / limit) * 100, 100);
+  };
+
+  const getUsageColor = (percentage: number) => {
+    if (percentage >= 90) return 'text-red-600';
+    if (percentage >= 70) return 'text-orange-600';
+    return 'text-green-600';
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            Plan Actual: Plan Pro
-            <Badge variant="secondary">$79.99/mes</Badge>
+            Plan Actual: {plan.name}
+            <Badge variant="secondary">${plan.price}/mes</Badge>
           </CardTitle>
-          <CardDescription>Para empresas en crecimiento</CardDescription>
+          <CardDescription>
+            {plan.description || 'Tu plan de suscripción actual'}
+          </CardDescription>
         </CardHeader>
       </Card>
 
@@ -30,10 +81,15 @@ export const UsageOverview = () => {
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>0 / 5</span>
-                <span className="text-muted-foreground">0.0%</span>
+                <span>{dashboardData?.activeConnections || 0} / {plan.max_whatsapp_connections}</span>
+                <span className={`${getUsageColor(calculatePercentage(dashboardData?.activeConnections || 0, plan.max_whatsapp_connections))}`}>
+                  {calculatePercentage(dashboardData?.activeConnections || 0, plan.max_whatsapp_connections).toFixed(1)}%
+                </span>
               </div>
-              <Progress value={0} className="h-2" />
+              <Progress 
+                value={calculatePercentage(dashboardData?.activeConnections || 0, plan.max_whatsapp_connections)} 
+                className="h-2" 
+              />
             </div>
           </CardContent>
         </Card>
@@ -48,10 +104,15 @@ export const UsageOverview = () => {
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>0 / 2,000</span>
-                <span className="text-muted-foreground">0.0%</span>
+                <span>{dashboardData?.contactsCount || 0} / {plan.max_contacts.toLocaleString()}</span>
+                <span className={`${getUsageColor(calculatePercentage(dashboardData?.contactsCount || 0, plan.max_contacts))}`}>
+                  {calculatePercentage(dashboardData?.contactsCount || 0, plan.max_contacts).toFixed(1)}%
+                </span>
               </div>
-              <Progress value={0} className="h-2" />
+              <Progress 
+                value={calculatePercentage(dashboardData?.contactsCount || 0, plan.max_contacts)} 
+                className="h-2" 
+              />
             </div>
           </CardContent>
         </Card>
@@ -66,10 +127,15 @@ export const UsageOverview = () => {
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>0 / 10</span>
-                <span className="text-muted-foreground">0.0%</span>
+                <span>{usage.campaigns_this_month} / {plan.max_monthly_campaigns}</span>
+                <span className={`${getUsageColor(calculatePercentage(usage.campaigns_this_month, plan.max_monthly_campaigns))}`}>
+                  {calculatePercentage(usage.campaigns_this_month, plan.max_monthly_campaigns).toFixed(1)}%
+                </span>
               </div>
-              <Progress value={0} className="h-2" />
+              <Progress 
+                value={calculatePercentage(usage.campaigns_this_month, plan.max_monthly_campaigns)} 
+                className="h-2" 
+              />
             </div>
           </CardContent>
         </Card>
@@ -84,10 +150,15 @@ export const UsageOverview = () => {
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>0 / 5,000</span>
-                <span className="text-muted-foreground">0.0%</span>
+                <span>{usage.bot_responses_this_month} / {plan.max_bot_responses.toLocaleString()}</span>
+                <span className={`${getUsageColor(calculatePercentage(usage.bot_responses_this_month, plan.max_bot_responses))}`}>
+                  {calculatePercentage(usage.bot_responses_this_month, plan.max_bot_responses).toFixed(1)}%
+                </span>
               </div>
-              <Progress value={0} className="h-2" />
+              <Progress 
+                value={calculatePercentage(usage.bot_responses_this_month, plan.max_bot_responses)} 
+                className="h-2" 
+              />
             </div>
           </CardContent>
         </Card>
@@ -102,10 +173,15 @@ export const UsageOverview = () => {
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>0 / 2,000 MB</span>
-                <span className="text-muted-foreground">0.0%</span>
+                <span>{usage.storage_used_mb} / {plan.max_storage_mb} MB</span>
+                <span className={`${getUsageColor(calculatePercentage(usage.storage_used_mb, plan.max_storage_mb))}`}>
+                  {calculatePercentage(usage.storage_used_mb, plan.max_storage_mb).toFixed(1)}%
+                </span>
               </div>
-              <Progress value={0} className="h-2" />
+              <Progress 
+                value={calculatePercentage(usage.storage_used_mb, plan.max_storage_mb)} 
+                className="h-2" 
+              />
             </div>
           </CardContent>
         </Card>

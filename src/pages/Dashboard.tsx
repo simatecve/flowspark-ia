@@ -15,13 +15,17 @@ import {
   Calendar,
   CheckCircle,
   AlertCircle,
-  Clock
+  Clock,
+  BarChart3
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useRecentActivity } from '@/hooks/useRecentActivity';
+import { useUserUsage, useUserPlan } from '@/hooks/useUserUsage';
 import { useAuth } from '@/hooks/useAuth';
 
 const DashboardPage = () => {
@@ -29,6 +33,8 @@ const DashboardPage = () => {
   const { user } = useAuth();
   const { data: dashboardData, isLoading: isDashboardLoading } = useDashboardData();
   const { data: recentActivity, isLoading: isActivityLoading } = useRecentActivity();
+  const { data: userUsage } = useUserUsage();
+  const { data: userPlan } = useUserPlan();
   const [timeFilter, setTimeFilter] = useState('7d');
 
   const getStatusIcon = (status: string) => {
@@ -54,6 +60,17 @@ const DashboardPage = () => {
     if (days > 0) return `Hace ${days} día${days > 1 ? 's' : ''}`;
     if (hours > 0) return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
     return 'Hace unos minutos';
+  };
+
+  const calculatePercentage = (used: number, limit: number) => {
+    if (limit === 0) return 0;
+    return Math.min((used / limit) * 100, 100);
+  };
+
+  const getUsageColor = (percentage: number) => {
+    if (percentage >= 90) return 'destructive';
+    if (percentage >= 70) return 'secondary';
+    return 'default';
   };
 
   if (isDashboardLoading) {
@@ -90,8 +107,71 @@ const DashboardPage = () => {
               <SelectItem value="90d">90 días</SelectItem>
             </SelectContent>
           </Select>
+          <Button onClick={() => navigate('/analytics')} variant="outline" size="sm">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Ver Análisis Completo
+          </Button>
         </div>
       </div>
+      
+      {/* Plan Status */}
+      {userPlan && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Estado del Plan: {userPlan.name}</span>
+              <Badge variant="secondary">${userPlan.price}/mes</Badge>
+            </CardTitle>
+            <CardDescription>
+              {userPlan.description || 'Tu plan de suscripción actual'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Conexiones WhatsApp</span>
+                  <span>{dashboardData?.activeConnections || 0}/{userPlan.max_whatsapp_connections}</span>
+                </div>
+                <Progress 
+                  value={calculatePercentage(dashboardData?.activeConnections || 0, userPlan.max_whatsapp_connections)} 
+                  className="h-2" 
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Contactos</span>
+                  <span>{dashboardData?.contactsCount || 0}/{userPlan.max_contacts.toLocaleString()}</span>
+                </div>
+                <Progress 
+                  value={calculatePercentage(dashboardData?.contactsCount || 0, userPlan.max_contacts)} 
+                  className="h-2" 
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Campañas mensuales</span>
+                  <span>{userUsage?.campaigns_this_month || 0}/{userPlan.max_monthly_campaigns}</span>
+                </div>
+                <Progress 
+                  value={calculatePercentage(userUsage?.campaigns_this_month || 0, userPlan.max_monthly_campaigns)} 
+                  className="h-2" 
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Respuestas Bot</span>
+                  <span>{userUsage?.bot_responses_this_month || 0}/{userPlan.max_bot_responses.toLocaleString()}</span>
+                </div>
+                <Progress 
+                  value={calculatePercentage(userUsage?.bot_responses_this_month || 0, userPlan.max_bot_responses)} 
+                  className="h-2" 
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
       {/* Estadísticas principales */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
