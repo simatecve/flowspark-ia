@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,6 +45,21 @@ export const useConversations = (instanceName?: string) => {
         throw error;
       }
 
+      // Obtener información de las conexiones de WhatsApp para los colores
+      const { data: connections, error: connectionsError } = await supabase
+        .from('whatsapp_connections')
+        .select('name, color');
+
+      if (connectionsError) {
+        console.error('Error fetching WhatsApp connections:', connectionsError);
+      }
+
+      // Crear un mapa de nombre de instancia -> color
+      const instanceColorMap = connections?.reduce((acc, conn) => {
+        acc[conn.name] = conn.color;
+        return acc;
+      }, {} as Record<string, string>) || {};
+
       // Transformar los datos para incluir instance_name y filtrar último mensaje
       const transformedData = data?.map((conv: any) => {
         // Filtrar mensajes por instancia si se especifica
@@ -65,11 +81,13 @@ export const useConversations = (instanceName?: string) => {
 
         // El pushname debe ser siempre del contacto (incoming), no del usuario que envía (outgoing)
         const contactPushname = firstIncomingMessage?.pushname || conv.pushname;
+        const currentInstanceName = filteredMessages[0]?.instance_name || '';
 
         return {
           id: conv.id,
           user_id: conv.user_id,
-          instance_name: filteredMessages[0]?.instance_name || '',
+          instance_name: currentInstanceName,
+          instance_color: instanceColorMap[currentInstanceName] || '#6b7280', // Color gris por defecto
           whatsapp_number: conv.whatsapp_number,
           pushname: contactPushname, // Siempre el pushname del contacto (incoming)
           last_message: lastIncomingMessage?.message || '', // Solo mostrar mensajes incoming
