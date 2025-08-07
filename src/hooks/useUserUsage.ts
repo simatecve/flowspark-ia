@@ -17,10 +17,12 @@ export const useUserUsage = () => {
       const currentMonth = new Date();
       currentMonth.setDate(1);
       
-      const { data, error } = await supabase.rpc('get_user_usage', {
-        p_user_id: user.id,
-        p_usage_month: currentMonth.toISOString().split('T')[0]
-      });
+      const { data, error } = await supabase
+        .from('user_usage')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('usage_month', currentMonth.toISOString().split('T')[0])
+        .single();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching user usage:', error);
@@ -44,16 +46,21 @@ export const useUserPlan = () => {
       
       if (!user) throw new Error('User not authenticated');
       
-      const { data, error } = await supabase.rpc('get_user_plan', {
-        p_user_id: user.id
-      });
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          subscription_plans (*)
+        `)
+        .eq('id', user.id)
+        .single();
 
       if (error) {
         console.error('Error fetching user plan:', error);
         throw error;
       }
 
-      return data || null;
+      return data?.subscription_plans || null;
     },
     enabled: !!user
   });

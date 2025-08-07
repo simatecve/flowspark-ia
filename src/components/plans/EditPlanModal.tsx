@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { SubscriptionPlan } from '@/types/plans';
+import { useUpdatePlan } from '@/hooks/useSubscriptionPlans';
 
 const editPlanSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -25,6 +26,7 @@ const editPlanSchema = z.object({
   max_monthly_campaigns: z.number().min(1, 'Debe permitir al menos 1 campaña'),
   max_bot_responses: z.number().min(1, 'Debe permitir al menos 1 respuesta'),
   max_storage_mb: z.number().min(1, 'Debe permitir al menos 1MB de almacenamiento'),
+  max_device_sessions: z.number().min(1, 'Debe permitir al menos 1 sesión de dispositivo'),
 });
 
 type EditPlanFormData = z.infer<typeof editPlanSchema>;
@@ -35,6 +37,8 @@ interface EditPlanModalProps {
 }
 
 export const EditPlanModal = ({ plan, onClose }: EditPlanModalProps) => {
+  const updatePlan = useUpdatePlan();
+  
   const {
     register,
     handleSubmit,
@@ -50,12 +54,23 @@ export const EditPlanModal = ({ plan, onClose }: EditPlanModalProps) => {
       max_monthly_campaigns: plan.max_monthly_campaigns,
       max_bot_responses: plan.max_bot_responses,
       max_storage_mb: plan.max_storage_mb,
+      max_device_sessions: plan.max_device_sessions,
     }
   });
 
   const onSubmit = (data: EditPlanFormData) => {
     console.log('Update plan:', data);
-    onClose();
+    updatePlan.mutate(
+      {
+        id: plan.id,
+        ...data
+      },
+      {
+        onSuccess: () => {
+          onClose();
+        }
+      }
+    );
   };
 
   return (
@@ -149,14 +164,23 @@ export const EditPlanModal = ({ plan, onClose }: EditPlanModalProps) => {
                 {...register('max_storage_mb', { valueAsNumber: true })}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-sessions">Máx. Sesiones de Dispositivos</Label>
+              <Input
+                id="edit-sessions"
+                type="number"
+                {...register('max_device_sessions', { valueAsNumber: true })}
+              />
+            </div>
           </div>
 
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit">
-              Actualizar Plan
+            <Button type="submit" disabled={updatePlan.isPending}>
+              {updatePlan.isPending ? 'Actualizando...' : 'Actualizar Plan'}
             </Button>
           </div>
         </form>

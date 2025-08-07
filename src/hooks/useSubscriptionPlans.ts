@@ -1,34 +1,24 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { SubscriptionPlan, CreatePlanData, UpdatePlanData } from '@/types/plans';
 import { toast } from 'sonner';
 
 export const useSubscriptionPlans = () => {
-  const { user } = useAuth();
-
   return useQuery({
     queryKey: ['subscription-plans'],
     queryFn: async (): Promise<SubscriptionPlan[]> => {
       console.log('Fetching subscription plans');
       
-      const { data, error } = await supabase.rpc('get_subscription_plans');
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price', { ascending: true });
 
       if (error) {
         console.error('Error fetching subscription plans:', error);
-        // Fallback to direct query if RPC doesn't exist
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('subscription_plans' as any)
-          .select('*')
-          .eq('is_active', true)
-          .order('price', { ascending: true });
-        
-        if (fallbackError) {
-          throw fallbackError;
-        }
-        
-        return (fallbackData || []) as SubscriptionPlan[];
+        throw error;
       }
 
       return (data || []) as SubscriptionPlan[];
@@ -43,9 +33,21 @@ export const useCreatePlan = () => {
     mutationFn: async (planData: CreatePlanData): Promise<SubscriptionPlan> => {
       console.log('Creating subscription plan:', planData);
       
-      const { data, error } = await supabase.rpc('create_subscription_plan', {
-        plan_data: planData
-      });
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .insert([{
+          name: planData.name,
+          description: planData.description,
+          price: planData.price,
+          max_whatsapp_connections: planData.max_whatsapp_connections,
+          max_contacts: planData.max_contacts,
+          max_monthly_campaigns: planData.max_monthly_campaigns,
+          max_bot_responses: planData.max_bot_responses,
+          max_storage_mb: planData.max_storage_mb,
+          max_device_sessions: planData.max_device_sessions,
+        }])
+        .select()
+        .single();
 
       if (error) {
         console.error('Error creating subscription plan:', error);
@@ -72,10 +74,22 @@ export const useUpdatePlan = () => {
     mutationFn: async (planData: UpdatePlanData): Promise<SubscriptionPlan> => {
       console.log('Updating subscription plan:', planData);
       
-      const { data, error } = await supabase.rpc('update_subscription_plan', {
-        plan_id: planData.id,
-        plan_data: planData
-      });
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .update({
+          name: planData.name,
+          description: planData.description,
+          price: planData.price,
+          max_whatsapp_connections: planData.max_whatsapp_connections,
+          max_contacts: planData.max_contacts,
+          max_monthly_campaigns: planData.max_monthly_campaigns,
+          max_bot_responses: planData.max_bot_responses,
+          max_storage_mb: planData.max_storage_mb,
+          max_device_sessions: planData.max_device_sessions,
+        })
+        .eq('id', planData.id)
+        .select()
+        .single();
 
       if (error) {
         console.error('Error updating subscription plan:', error);
@@ -102,9 +116,10 @@ export const useDeletePlan = () => {
     mutationFn: async (planId: string): Promise<void> => {
       console.log('Deactivating subscription plan:', planId);
       
-      const { error } = await supabase.rpc('deactivate_subscription_plan', {
-        plan_id: planId
-      });
+      const { error } = await supabase
+        .from('subscription_plans')
+        .update({ is_active: false })
+        .eq('id', planId);
 
       if (error) {
         console.error('Error deactivating subscription plan:', error);
