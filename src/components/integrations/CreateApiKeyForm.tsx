@@ -27,7 +27,7 @@ export const CreateApiKeyForm = () => {
     }
 
     createApiKey({
-      provider: selectedProvider,
+      provider: selectedProvider as 'openai' | 'gemini' | 'groq',
       api_key: apiKey.trim(),
     });
 

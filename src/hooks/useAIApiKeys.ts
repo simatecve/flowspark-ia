@@ -45,7 +45,7 @@ export const useAIApiKeys = () => {
   });
 
   // Crear una nueva API key
-  const createApiKey = useMutation({
+  const createApiKeyMutation = useMutation({
     mutationFn: async (apiKeyData: CreateApiKeyData) => {
       if (!user) throw new Error('Usuario no autenticado');
 
@@ -81,7 +81,7 @@ export const useAIApiKeys = () => {
   });
 
   // Actualizar una API key existente
-  const updateApiKey = useMutation({
+  const updateApiKeyMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<AIApiKey> }) => {
       console.log('Updating AI API key:', id);
 
@@ -111,12 +111,12 @@ export const useAIApiKeys = () => {
   });
 
   // Alternar el estado activo/inactivo de una API key
-  const toggleApiKey = useMutation({
+  const toggleApiKeyMutation = useMutation({
     mutationFn: async (id: string) => {
       const currentApiKey = apiKeys?.find(key => key.id === id);
       if (!currentApiKey) throw new Error('API Key no encontrada');
 
-      return updateApiKey.mutateAsync({
+      return updateApiKeyMutation.mutateAsync({
         id,
         updates: { is_active: !currentApiKey.is_active }
       });
@@ -124,7 +124,7 @@ export const useAIApiKeys = () => {
   });
 
   // Eliminar una API key
-  const deleteApiKey = useMutation({
+  const deleteApiKeyMutation = useMutation({
     mutationFn: async (id: string) => {
       console.log('Deleting AI API key:', id);
 
@@ -153,10 +153,13 @@ export const useAIApiKeys = () => {
   return {
     apiKeys: apiKeys || [],
     isLoading,
+    isLoadingApiKeys: isLoading,
     error,
-    createApiKey,
-    updateApiKey,
-    toggleApiKey,
-    deleteApiKey,
+    createApiKey: createApiKeyMutation.mutate,
+    isCreatingApiKey: createApiKeyMutation.isPending,
+    updateApiKey: updateApiKeyMutation.mutate,
+    toggleApiKey: toggleApiKeyMutation.mutate,
+    deleteApiKey: deleteApiKeyMutation.mutate,
+    isDeletingApiKey: deleteApiKeyMutation.isPending,
   };
 };
