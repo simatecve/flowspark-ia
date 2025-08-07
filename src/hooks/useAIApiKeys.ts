@@ -31,7 +31,7 @@ export const useAIApiKeys = () => {
     queryFn: async () => {
       console.log('Fetching AI API keys for user:', user?.id);
       const { data, error } = await supabase
-        .from('ai_api_keys')
+        .from('ai_api_keys' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -53,7 +53,7 @@ export const useAIApiKeys = () => {
       console.log('Creating AI API key for provider:', apiKeyData.provider);
 
       const { data, error } = await supabase
-        .from('ai_api_keys')
+        .from('ai_api_keys' as any)
         .insert({
           provider: apiKeyData.provider,
           api_key: apiKeyData.api_key,
@@ -95,7 +95,7 @@ export const useAIApiKeys = () => {
       console.log('Updating AI API key:', id);
 
       const { data, error } = await supabase
-        .from('ai_api_keys')
+        .from('ai_api_keys' as any)
         .update(updates)
         .eq('id', id)
         .select()
@@ -133,7 +133,7 @@ export const useAIApiKeys = () => {
       console.log('Deleting AI API key:', id);
 
       const { error } = await supabase
-        .from('ai_api_keys')
+        .from('ai_api_keys' as any)
         .delete()
         .eq('id', id);
 
