@@ -1,18 +1,27 @@
 
 import React, { useState, useEffect } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Filter } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { ConversationList } from './ConversationList';
 import { ChatArea } from './ChatArea';
+import { InstanceSelector } from './InstanceSelector';
 import { useConversations } from '@/hooks/useConversations';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Conversation } from '@/types/messages';
 
 export const MessagesPage = () => {
-  const { conversations, isLoading } = useConversations();
+  const [selectedInstance, setSelectedInstance] = useState<string>('all');
+  const instanceName = selectedInstance === 'all' ? undefined : selectedInstance;
+  
+  const { conversations, isLoading } = useConversations(instanceName);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const queryClient = useQueryClient();
+
+  // Reset selected conversation when instance changes
+  useEffect(() => {
+    setSelectedConversation(null);
+  }, [selectedInstance]);
 
   // Realtime subscription para conversaciones
   useEffect(() => {
@@ -78,10 +87,20 @@ export const MessagesPage = () => {
         {/* Lista de conversaciones */}
         <div className="col-span-4">
           <Card className="h-full">
-            <div className="p-4 border-b">
+            <div className="p-4 border-b space-y-4">
               <div className="flex items-center gap-2">
                 <MessageCircle className="h-5 w-5 text-whatsapp-500" />
                 <h3 className="font-semibold">Conversaciones</h3>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <div className="flex-1">
+                  <InstanceSelector 
+                    value={selectedInstance} 
+                    onValueChange={setSelectedInstance} 
+                  />
+                </div>
               </div>
             </div>
             <ConversationList

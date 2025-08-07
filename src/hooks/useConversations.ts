@@ -14,7 +14,7 @@ export const useConversations = (instanceName?: string) => {
     queryFn: async () => {
       console.log('Fetching conversations for user:', user?.id, 'instance:', instanceName);
       
-      // Obtener conversaciones únicas basadas en instance_name y whatsapp_number
+      // Construir la consulta base
       let query = supabase
         .from('conversations')
         .select(`
@@ -32,7 +32,7 @@ export const useConversations = (instanceName?: string) => {
         .or(user ? `user_id.eq.${user.id},user_id.is.null` : 'user_id.is.null')
         .order('last_message_at', { ascending: false });
 
-      // Filtrar por instance_name si se proporciona
+      // Si se especifica una instancia, filtrar por ella
       if (instanceName) {
         query = query.eq('messages.instance_name', instanceName);
       }
@@ -46,8 +46,14 @@ export const useConversations = (instanceName?: string) => {
 
       // Transformar los datos para incluir instance_name y filtrar último mensaje
       const transformedData = data?.map((conv: any) => {
+        // Filtrar mensajes por instancia si se especifica
+        let filteredMessages = conv.messages || [];
+        if (instanceName) {
+          filteredMessages = filteredMessages.filter((msg: any) => msg.instance_name === instanceName);
+        }
+
         // Buscar el último mensaje incoming (no outgoing) para mostrar en la lista
-        const incomingMessages = conv.messages?.filter((msg: any) => msg.direction === 'incoming') || [];
+        const incomingMessages = filteredMessages.filter((msg: any) => msg.direction === 'incoming');
         const lastIncomingMessage = incomingMessages.sort((a: any, b: any) => 
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )[0];
@@ -63,7 +69,7 @@ export const useConversations = (instanceName?: string) => {
         return {
           id: conv.id,
           user_id: conv.user_id,
-          instance_name: conv.messages?.[0]?.instance_name || '',
+          instance_name: filteredMessages[0]?.instance_name || '',
           whatsapp_number: conv.whatsapp_number,
           pushname: contactPushname, // Siempre el pushname del contacto (incoming)
           last_message: lastIncomingMessage?.message || '', // Solo mostrar mensajes incoming
