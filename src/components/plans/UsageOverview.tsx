@@ -34,7 +34,8 @@ export const UsageOverview = () => {
     max_contacts: 500,
     max_monthly_campaigns: 3,
     max_bot_responses: 1000,
-    max_storage_mb: 500
+    max_storage_mb: 500,
+    description: 'Plan básico con funcionalidades esenciales'
   };
 
   const usage = userUsage || {
@@ -65,7 +66,7 @@ export const UsageOverview = () => {
             <Badge variant="secondary">${plan.price}/mes</Badge>
           </CardTitle>
           <CardDescription>
-            {plan.description || 'Tu plan de suscripción actual'}
+            {plan.description}
           </CardDescription>
         </CardHeader>
       </Card>

@@ -1,282 +1,380 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  MessageSquare, 
-  Users, 
-  TrendingUp, 
-  Phone,
-  Calendar,
-  Download,
-  Filter,
-  BarChart3,
-  PieChart,
-  Activity
-} from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Calendar, TrendingUp, TrendingDown, Activity, Users, MessageSquare, Bot, Zap } from 'lucide-react';
+import { useUserUsage, useUserPlan } from '@/hooks/useUserUsage';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import { UsageChart } from './UsageChart';
 import { MessagesChart } from './MessagesChart';
 import { ResponseRateChart } from './ResponseRateChart';
 import { CampaignStatsChart } from './CampaignStatsChart';
-import { useDashboardData } from '@/hooks/useDashboardData';
-import { useUserUsage, useUserPlan } from '@/hooks/useUserUsage';
 
 export const AnalyticsPage = () => {
-  const [timeFilter, setTimeFilter] = useState('30d');
+  const [timeRange, setTimeRange] = useState('7d');
   const [chartType, setChartType] = useState('bar');
   
-  const { data: dashboardData, isLoading: dashboardLoading } = useDashboardData();
   const { data: userUsage, isLoading: usageLoading } = useUserUsage();
   const { data: userPlan, isLoading: planLoading } = useUserPlan();
+  const { data: dashboardData, isLoading: dashboardLoading } = useDashboardData();
 
-  const isLoading = dashboardLoading || usageLoading || planLoading;
-
-  const stats = [
-    {
-      title: 'Mensajes Enviados',
-      value: dashboardData?.sentMessages || 0,
-      change: '+12.5%',
-      changeType: 'positive' as const,
-      icon: MessageSquare,
-      color: 'text-blue-600'
-    },
-    {
-      title: 'Tasa de Respuesta',
-      value: `${dashboardData?.responseRate || 0}%`,
-      change: '+5.2%',
-      changeType: 'positive' as const,
-      icon: TrendingUp,
-      color: 'text-green-600'
-    },
-    {
-      title: 'Contactos Activos',
-      value: dashboardData?.contactsCount || 0,
-      change: '+8.1%',
-      changeType: 'positive' as const,
-      icon: Users,
-      color: 'text-purple-600'
-    },
-    {
-      title: 'Conexiones Activas',
-      value: dashboardData?.activeConnections || 0,
-      change: 'Sin cambios',
-      changeType: 'neutral' as const,
-      icon: Phone,
-      color: 'text-emerald-600'
-    }
-  ];
-
-  if (isLoading) {
+  if (usageLoading || planLoading || dashboardLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando estadísticas...</p>
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-96 mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
+            ))}
+          </div>
+          <div className="h-96 bg-gray-200 rounded-lg"></div>
         </div>
       </div>
     );
   }
 
+  const plan = userPlan || {
+    name: 'Plan Básico',
+    price: 29.99,
+    max_whatsapp_connections: 2,
+    max_contacts: 500,
+    max_monthly_campaigns: 3,
+    max_bot_responses: 1000,
+    max_storage_mb: 500
+  };
+
+  const usage = userUsage || {
+    whatsapp_connections_used: 0,
+    contacts_used: 0,
+    campaigns_this_month: 0,
+    bot_responses_this_month: 0,
+    storage_used_mb: 0
+  };
+
+  const calculatePercentage = (used: number, limit: number) => {
+    if (limit === 0) return 0;
+    return Math.min((used / limit) * 100, 100);
+  };
+
+  const getUsageStatus = (percentage: number) => {
+    if (percentage >= 90) return { color: 'text-red-600', status: 'Crítico', variant: 'destructive' as const };
+    if (percentage >= 70) return { color: 'text-orange-600', status: 'Alto', variant: 'warning' as const };
+    return { color: 'text-green-600', status: 'Normal', variant: 'secondary' as const };
+  };
+
+  // Datos simulados para gráficos (en un caso real vendrían de la base de datos)
+  const mockMessagesData = [
+    { date: '2024-01-01', enviados: 120, recibidos: 95 },
+    { date: '2024-01-02', enviados: 150, recibidos: 110 },
+    { date: '2024-01-03', enviados: 180, recibidos: 140 },
+    { date: '2024-01-04', enviados: 200, recibidos: 165 },
+    { date: '2024-01-05', enviados: 170, recibidos: 130 },
+    { date: '2024-01-06', enviados: 220, recibidos: 180 },
+    { date: '2024-01-07', enviados: 250, recibidos: 200 }
+  ];
+
+  const mockResponseData = [
+    { date: '2024-01-01', tasa: 78 },
+    { date: '2024-01-02', tasa: 82 },
+    { date: '2024-01-03', tasa: 75 },
+    { date: '2024-01-04', tasa: 88 },
+    { date: '2024-01-05', tasa: 79 },
+    { date: '2024-01-06', tasa: 85 },
+    { date: '2024-01-07', tasa: 90 }
+  ];
+
+  const mockCampaignData = [
+    { campaign: 'Promoción Enero', enviados: 500, entregados: 485, abiertos: 320, clicks: 145 },
+    { campaign: 'Newsletter', enviados: 300, entregados: 295, abiertos: 180, clicks: 65 },
+    { campaign: 'Oferta Especial', enviados: 200, entregados: 190, abiertos: 140, clicks: 80 }
+  ];
+
+  // Cálculos de estadísticas
+  const connectionsPercentage = calculatePercentage(dashboardData?.activeConnections || 0, plan.max_whatsapp_connections);
+  const contactsPercentage = calculatePercentage(dashboardData?.contactsCount || 0, plan.max_contacts);
+  const campaignsPercentage = calculatePercentage(usage.campaigns_this_month, plan.max_monthly_campaigns);
+  const botPercentage = calculatePercentage(usage.bot_responses_this_month, plan.max_bot_responses);
+
+  const connectionsStatus = getUsageStatus(connectionsPercentage);
+  const contactsStatus = getUsageStatus(contactsPercentage);
+  const campaignsStatus = getUsageStatus(campaignsPercentage);
+  const botStatus = getUsageStatus(botPercentage);
+
+  const totalMessages = mockMessagesData.reduce((sum, day) => sum + day.enviados + day.recibidos, 0);
+  const averageResponseRate = mockResponseData.reduce((sum, day) => sum + day.tasa, 0) / mockResponseData.length;
+  const totalCampaignsSent = mockCampaignData.reduce((sum, campaign) => sum + campaign.enviados, 0);
+  const totalOpened = mockCampaignData.reduce((sum, campaign) => sum + campaign.abiertos, 0);
+  const overallOpenRate = totalCampaignsSent > 0 ? (totalOpened / totalCampaignsSent) * 100 : 0;
+
+  // Comparación con período anterior (simulado)
+  const previousMessages = 1200;
+  const messagesGrowth = ((totalMessages - previousMessages) / previousMessages) * 100;
+  
+  const previousResponseRate = 78;
+  const responseRateGrowth = averageResponseRate - previousResponseRate;
+
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Estadísticas y Análisis</h1>
+          <h2 className="text-3xl font-bold tracking-tight">Analytics y Estadísticas</h2>
           <p className="text-muted-foreground">
-            Análisis detallado de tu actividad y uso de la plataforma
+            Análisis detallado de tu plan {plan.name} y rendimiento de tus campañas
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Select value={timeFilter} onValueChange={setTimeFilter}>
-            <SelectTrigger className="w-32">
-              <Filter className="h-4 w-4 mr-2" />
+
+        <div className="flex items-center gap-4">
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7d">7 días</SelectItem>
-              <SelectItem value="30d">30 días</SelectItem>
-              <SelectItem value="90d">90 días</SelectItem>
-              <SelectItem value="1y">1 año</SelectItem>
+              <SelectItem value="1d">Último día</SelectItem>
+              <SelectItem value="7d">Últimos 7 días</SelectItem>
+              <SelectItem value="30d">Últimos 30 días</SelectItem>
+              <SelectItem value="90d">Últimos 3 meses</SelectItem>
             </SelectContent>
           </Select>
+
           <Select value={chartType} onValueChange={setChartType}>
-            <SelectTrigger className="w-32">
-              <BarChart3 className="h-4 w-4 mr-2" />
+            <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="bar">Barras</SelectItem>
-              <SelectItem value="line">Líneas</SelectItem>
-              <SelectItem value="area">Área</SelectItem>
+              <SelectItem value="bar">Gráfico de barras</SelectItem>
+              <SelectItem value="line">Gráfico de líneas</SelectItem>
+              <SelectItem value="area">Gráfico de área</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
         </div>
       </div>
 
-      {/* Plan Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Estado del Plan
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">{userPlan?.name || 'Plan Básico'}</h3>
-              <p className="text-muted-foreground">
-                ${userPlan?.price || 29.99}/mes • Renovación automática
-              </p>
+      {/* Resumen de estadísticas clave */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Mensajes</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalMessages.toLocaleString()}</div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              {messagesGrowth > 0 ? (
+                <>
+                  <TrendingUp className="mr-1 h-4 w-4 text-green-600" />
+                  <span className="text-green-600">+{messagesGrowth.toFixed(1)}%</span>
+                </>
+              ) : (
+                <>
+                  <TrendingDown className="mr-1 h-4 w-4 text-red-600" />
+                  <span className="text-red-600">{messagesGrowth.toFixed(1)}%</span>
+                </>
+              )}
+              <span className="ml-1">vs período anterior</span>
             </div>
-            <Badge variant="secondary">Activo</Badge>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tasa de Respuesta</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{averageResponseRate.toFixed(1)}%</div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              {responseRateGrowth > 0 ? (
+                <>
+                  <TrendingUp className="mr-1 h-4 w-4 text-green-600" />
+                  <span className="text-green-600">+{responseRateGrowth.toFixed(1)}%</span>
+                </>
+              ) : responseRateGrowth < 0 ? (
+                <>
+                  <TrendingDown className="mr-1 h-4 w-4 text-red-600" />
+                  <span className="text-red-600">{responseRateGrowth.toFixed(1)}%</span>
+                </>
+              ) : (
+                <span>Sin cambios</span>
+              )}
+              <span className="ml-1">vs período anterior</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Contactos Activos</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardData?.contactsCount || 0}</div>
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground">
+                {plan.max_contacts.toLocaleString()} límite
+              </div>
+              <Badge variant={contactsStatus.variant} className="text-xs">
+                {contactsStatus.status}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tasa Apertura</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overallOpenRate.toFixed(1)}%</div>
+            <div className="text-xs text-muted-foreground">
+              {totalCampaignsSent.toLocaleString()} mensajes enviados
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="usage" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="usage">Uso del Plan</TabsTrigger>
+          <TabsTrigger value="messages">Mensajes</TabsTrigger>
+          <TabsTrigger value="performance">Rendimiento</TabsTrigger>
+          <TabsTrigger value="campaigns">Campañas</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="usage" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Consumo de Recursos - {plan.name}</CardTitle>
+              <CardDescription>
+                Monitoreo en tiempo real del uso de tu plan (actualizado cada 30 segundos)
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className={`text-xs ${
-                stat.changeType === 'positive' ? 'text-green-600' : 
-                stat.changeType === 'negative' ? 'text-red-600' : 
-                'text-muted-foreground'
-              }`}>
-                {stat.change}
-              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                      <span className="text-sm font-medium">Conexiones WhatsApp</span>
+                      <Badge variant={connectionsStatus.variant} className="text-xs">
+                        {connectionsStatus.status}
+                      </Badge>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {dashboardData?.activeConnections || 0} / {plan.max_whatsapp_connections}
+                    </span>
+                  </div>
+                  <Progress value={connectionsPercentage} className="h-2" />
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-medium">Contactos</span>
+                      <Badge variant={contactsStatus.variant} className="text-xs">
+                        {contactsStatus.status}
+                      </Badge>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {dashboardData?.contactsCount || 0} / {plan.max_contacts.toLocaleString()}
+                    </span>
+                  </div>
+                  <Progress value={contactsPercentage} className="h-2" />
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                      <span className="text-sm font-medium">Campañas este mes</span>
+                      <Badge variant={campaignsStatus.variant} className="text-xs">
+                        {campaignsStatus.status}
+                      </Badge>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {usage.campaigns_this_month} / {plan.max_monthly_campaigns}
+                    </span>
+                  </div>
+                  <Progress value={campaignsPercentage} className="h-2" />
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                      <span className="text-sm font-medium">Respuestas Bot</span>
+                      <Badge variant={botStatus.variant} className="text-xs">
+                        {botStatus.status}
+                      </Badge>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {usage.bot_responses_this_month} / {plan.max_bot_responses.toLocaleString()}
+                    </span>
+                  </div>
+                  <Progress value={botPercentage} className="h-2" />
+                </div>
+              </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      {/* Charts Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Uso del Plan</CardTitle>
-            <CardDescription>
-              Consumo vs límites de tu plan actual
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <UsageChart 
-              userUsage={userUsage} 
-              userPlan={userPlan} 
-              dashboardData={dashboardData}
-            />
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Gráfico de Uso por Categoría</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UsageChart 
+                userUsage={usage} 
+                userPlan={plan} 
+                dashboardData={dashboardData} 
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Mensajes por Día</CardTitle>
-            <CardDescription>
-              Evolución de mensajes enviados en los últimos {timeFilter === '7d' ? '7 días' : timeFilter === '30d' ? '30 días' : '90 días'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MessagesChart timeFilter={timeFilter} chartType={chartType} />
-          </CardContent>
-        </Card>
+        <TabsContent value="messages" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Actividad de Mensajes</CardTitle>
+              <CardDescription>
+                Mensajes enviados y recibidos en los últimos {timeRange === '1d' ? '1 día' : timeRange === '7d' ? '7 días' : timeRange === '30d' ? '30 días' : '3 meses'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MessagesChart data={mockMessagesData} />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Tasa de Respuesta</CardTitle>
-            <CardDescription>
-              Porcentaje de mensajes respondidos vs enviados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponseRateChart timeFilter={timeFilter} />
-          </CardContent>
-        </Card>
+        <TabsContent value="performance" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tasa de Respuesta</CardTitle>
+              <CardDescription>
+                Porcentaje de mensajes que recibieron respuesta
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponseRateChart data={mockResponseData} />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Rendimiento de Campañas</CardTitle>
-            <CardDescription>
-              Estadísticas de tus campañas masivas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CampaignStatsChart timeFilter={timeFilter} />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Detailed Usage Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalles de Consumo</CardTitle>
-          <CardDescription>
-            Desglose detallado del uso de recursos
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">Conexiones WhatsApp</span>
-                  <span>{dashboardData?.activeConnections || 0} / {userPlan?.max_whatsapp_connections || 2}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">Contactos</span>
-                  <span>{dashboardData?.contactsCount || 0} / {userPlan?.max_contacts?.toLocaleString() || '500'}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">Campañas este mes</span>
-                  <span>{userUsage?.campaigns_this_month || 0} / {userPlan?.max_monthly_campaigns || 3}</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">Respuestas Bot</span>
-                  <span>{userUsage?.bot_responses_this_month || 0} / {userPlan?.max_bot_responses?.toLocaleString() || '1,000'}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">Almacenamiento</span>
-                  <span>{userUsage?.storage_used_mb || 0} MB / {userPlan?.max_storage_mb || 500} MB</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">Sesiones de dispositivo</span>
-                  <span>{userUsage?.device_sessions_used || 0} / {userPlan?.max_device_sessions || 1}</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-sm">
-                  <span className="font-medium">Período actual:</span>
-                  <div className="text-muted-foreground">
-                    {new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                  </div>
-                </div>
-                <div className="text-sm">
-                  <span className="font-medium">Próxima renovación:</span>
-                  <div className="text-muted-foreground">
-                    {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES')}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <TabsContent value="campaigns" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Rendimiento de Campañas</CardTitle>
+              <CardDescription>
+                Estadísticas detalladas de tus campañas de marketing
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CampaignStatsChart data={mockCampaignData} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
