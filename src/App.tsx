@@ -20,7 +20,15 @@ import SettingsPage from "@/components/settings/SettingsPage";
 import { AIBotsPage } from "@/components/ai/AIBotsPage";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Create QueryClient outside of component to avoid recreation on re-renders
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -76,11 +84,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
           <BrowserRouter>
             <AppContent />
           </BrowserRouter>
+          <Toaster />
+          <Sonner />
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
