@@ -17,10 +17,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       '/connections': 'connections',
       '/messages': 'messages',
       '/campaigns': 'campaigns',
-      '/contact-lists': 'leads',
+      '/contact-lists': 'contact-lists',
       '/leads': 'leads',
       '/bot': 'bot',
-      '/integrations': 'billing',
+      '/integrations': 'integrations',
       '/settings': 'settings',
     };
     return routeToPageMap[location.pathname] || 'dashboard';
@@ -28,7 +28,6 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const handlePageChange = (page: string) => {
     setCurrentPage(page);
-    // We'll handle navigation through the sidebar component
   };
 
   return (
