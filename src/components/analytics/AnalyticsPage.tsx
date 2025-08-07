@@ -41,6 +41,7 @@ export const AnalyticsPage = () => {
   const plan = userPlan || {
     name: 'Plan Básico',
     price: 29.99,
+    description: 'Plan básico para comenzar',
     max_whatsapp_connections: 2,
     max_contacts: 500,
     max_monthly_campaigns: 3,
@@ -63,7 +64,7 @@ export const AnalyticsPage = () => {
 
   const getUsageStatus = (percentage: number) => {
     if (percentage >= 90) return { color: 'text-red-600', status: 'Crítico', variant: 'destructive' as const };
-    if (percentage >= 70) return { color: 'text-orange-600', status: 'Alto', variant: 'warning' as const };
+    if (percentage >= 70) return { color: 'text-orange-600', status: 'Alto', variant: 'outline' as const };
     return { color: 'text-green-600', status: 'Normal', variant: 'secondary' as const };
   };
 
@@ -342,7 +343,7 @@ export const AnalyticsPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <MessagesChart data={mockMessagesData} />
+              <MessagesChart timeFilter={timeRange} chartType={chartType} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -356,7 +357,7 @@ export const AnalyticsPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponseRateChart data={mockResponseData} />
+              <ResponseRateChart timeFilter={timeRange} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -370,7 +371,7 @@ export const AnalyticsPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CampaignStatsChart data={mockCampaignData} />
+              <CampaignStatsChart timeFilter={timeRange} />
             </CardContent>
           </Card>
         </TabsContent>
