@@ -479,6 +479,7 @@ export type Database = {
           is_active: boolean
           max_bot_responses: number
           max_contacts: number
+          max_conversations: number
           max_device_sessions: number
           max_monthly_campaigns: number
           max_storage_mb: number
@@ -494,6 +495,7 @@ export type Database = {
           is_active?: boolean
           max_bot_responses: number
           max_contacts: number
+          max_conversations?: number
           max_device_sessions?: number
           max_monthly_campaigns: number
           max_storage_mb: number
@@ -509,6 +511,7 @@ export type Database = {
           is_active?: boolean
           max_bot_responses?: number
           max_contacts?: number
+          max_conversations?: number
           max_device_sessions?: number
           max_monthly_campaigns?: number
           max_storage_mb?: number
@@ -565,6 +568,7 @@ export type Database = {
           bot_responses_this_month: number
           campaigns_this_month: number
           contacts_used: number
+          conversations_used: number
           created_at: string
           device_sessions_used: number
           id: string
@@ -579,6 +583,7 @@ export type Database = {
           bot_responses_this_month?: number
           campaigns_this_month?: number
           contacts_used?: number
+          conversations_used?: number
           created_at?: string
           device_sessions_used?: number
           id?: string
@@ -593,6 +598,7 @@ export type Database = {
           bot_responses_this_month?: number
           campaigns_this_month?: number
           contacts_used?: number
+          conversations_used?: number
           created_at?: string
           device_sessions_used?: number
           id?: string
