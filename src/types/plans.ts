@@ -27,8 +27,17 @@ export interface CreatePlanData {
   max_device_sessions: number;
 }
 
-export interface UpdatePlanData extends CreatePlanData {
+export interface UpdatePlanData {
   id: string;
+  name: string;
+  description?: string;
+  price: number;
+  max_whatsapp_connections: number;
+  max_contacts: number;
+  max_monthly_campaigns: number;
+  max_bot_responses: number;
+  max_storage_mb: number;
+  max_device_sessions: number;
 }
 
 export interface UserUsage {
@@ -42,6 +51,17 @@ export interface UserUsage {
   storage_used_mb: number;
   device_sessions_used: number;
   usage_month: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserSubscription {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  status: 'active' | 'canceled' | 'expired';
+  started_at: string;
+  expires_at?: string;
   created_at: string;
   updated_at: string;
 }

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { SubscriptionPlan } from '@/types/plans';
+import { SubscriptionPlan, UpdatePlanData } from '@/types/plans';
 import { useUpdatePlan } from '@/hooks/useSubscriptionPlans';
 
 const editPlanSchema = z.object({
@@ -60,17 +60,25 @@ export const EditPlanModal = ({ plan, onClose }: EditPlanModalProps) => {
 
   const onSubmit = (data: EditPlanFormData) => {
     console.log('Update plan:', data);
-    updatePlan.mutate(
-      {
-        id: plan.id,
-        ...data
-      },
-      {
-        onSuccess: () => {
-          onClose();
-        }
+    
+    const updateData: UpdatePlanData = {
+      id: plan.id,
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      max_whatsapp_connections: data.max_whatsapp_connections,
+      max_contacts: data.max_contacts,
+      max_monthly_campaigns: data.max_monthly_campaigns,
+      max_bot_responses: data.max_bot_responses,
+      max_storage_mb: data.max_storage_mb,
+      max_device_sessions: data.max_device_sessions,
+    };
+    
+    updatePlan.mutate(updateData, {
+      onSuccess: () => {
+        onClose();
       }
-    );
+    });
   };
 
   return (

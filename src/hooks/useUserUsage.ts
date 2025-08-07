@@ -22,9 +22,9 @@ export const useUserUsage = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('usage_month', currentMonth.toISOString().split('T')[0])
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching user usage:', error);
         throw error;
       }

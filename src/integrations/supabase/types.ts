@@ -435,6 +435,7 @@ export type Database = {
           id: string
           last_name: string | null
           phone: string | null
+          plan_id: string | null
           plan_type: string | null
           updated_at: string
         }
@@ -445,6 +446,7 @@ export type Database = {
           id: string
           last_name?: string | null
           phone?: string | null
+          plan_id?: string | null
           plan_type?: string | null
           updated_at?: string
         }
@@ -455,10 +457,161 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone?: string | null
+          plan_id?: string | null
           plan_type?: string | null
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          max_bot_responses: number
+          max_contacts: number
+          max_device_sessions: number
+          max_monthly_campaigns: number
+          max_storage_mb: number
+          max_whatsapp_connections: number
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_bot_responses: number
+          max_contacts: number
+          max_device_sessions?: number
+          max_monthly_campaigns: number
+          max_storage_mb: number
+          max_whatsapp_connections: number
+          name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_bot_responses?: number
+          max_contacts?: number
+          max_device_sessions?: number
+          max_monthly_campaigns?: number
+          max_storage_mb?: number
+          max_whatsapp_connections?: number
+          name?: string
+          price?: number
+          updated_at?: string
+        }
         Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          plan_id: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan_id: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan_id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_usage: {
+        Row: {
+          bot_responses_this_month: number
+          campaigns_this_month: number
+          contacts_used: number
+          created_at: string
+          device_sessions_used: number
+          id: string
+          plan_id: string
+          storage_used_mb: number
+          updated_at: string
+          usage_month: string
+          user_id: string
+          whatsapp_connections_used: number
+        }
+        Insert: {
+          bot_responses_this_month?: number
+          campaigns_this_month?: number
+          contacts_used?: number
+          created_at?: string
+          device_sessions_used?: number
+          id?: string
+          plan_id: string
+          storage_used_mb?: number
+          updated_at?: string
+          usage_month?: string
+          user_id: string
+          whatsapp_connections_used?: number
+        }
+        Update: {
+          bot_responses_this_month?: number
+          campaigns_this_month?: number
+          contacts_used?: number
+          created_at?: string
+          device_sessions_used?: number
+          id?: string
+          plan_id?: string
+          storage_used_mb?: number
+          updated_at?: string
+          usage_month?: string
+          user_id?: string
+          whatsapp_connections_used?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_usage_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       webhooks: {
         Row: {
@@ -531,7 +684,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_usage_limit: {
+        Args: {
+          p_user_id: string
+          p_resource_type: string
+          p_requested_amount?: number
+        }
+        Returns: boolean
+      }
+      increment_usage: {
+        Args: { p_user_id: string; p_resource_type: string; p_amount?: number }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
