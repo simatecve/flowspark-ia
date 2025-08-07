@@ -38,6 +38,8 @@ const formSchema = z.object({
   is_active: z.boolean().default(true),
 });
 
+type FormData = z.infer<typeof formSchema>;
+
 interface CreateAIApiKeyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -49,16 +51,15 @@ export const CreateAIApiKeyModal: React.FC<CreateAIApiKeyModalProps> = ({
 }) => {
   const { createKey, isCreatingKey } = useAIApiKeys();
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      provider: undefined,
       api_key: '',
       is_active: true,
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: FormData) => {
     console.log('Creating API key with values:', values);
     createKey(values);
     form.reset();
@@ -90,7 +91,7 @@ export const CreateAIApiKeyModal: React.FC<CreateAIApiKeyModalProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Proveedor</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona un proveedor" />

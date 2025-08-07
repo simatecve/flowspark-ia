@@ -18,108 +18,77 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useAIApiKeys, AIApiKey } from '@/hooks/useAIApiKeys';
 
 const formSchema = z.object({
-  provider: z.enum(['openai', 'gemini', 'groq', 'anthropic'], {
-    required_error: 'Selecciona un proveedor',
-  }),
   api_key: z.string().min(10, 'La API key debe tener al menos 10 caracteres'),
   is_active: z.boolean(),
 });
 
+type FormData = z.infer<typeof formSchema>;
+
 interface EditAIApiKeyModalProps {
-  apiKey: AIApiKey;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  apiKey: AIApiKey;
 }
 
 export const EditAIApiKeyModal: React.FC<EditAIApiKeyModalProps> = ({
-  apiKey,
   open,
   onOpenChange,
+  apiKey,
 }) => {
   const { updateKey, isUpdatingKey } = useAIApiKeys();
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      provider: apiKey.provider,
       api_key: apiKey.api_key,
       is_active: apiKey.is_active,
     },
   });
 
   useEffect(() => {
-    if (apiKey) {
-      form.reset({
-        provider: apiKey.provider,
-        api_key: apiKey.api_key,
-        is_active: apiKey.is_active,
-      });
-    }
+    form.reset({
+      api_key: apiKey.api_key,
+      is_active: apiKey.is_active,
+    });
   }, [apiKey, form]);
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: FormData) => {
     console.log('Updating API key with values:', values);
-    updateKey({ id: apiKey.id, ...values });
+    updateKey({
+      id: apiKey.id,
+      ...values,
+    });
     onOpenChange(false);
   };
 
-  const providerOptions = [
-    { value: 'openai', label: 'OpenAI' },
-    { value: 'gemini', label: 'Google Gemini' },
-    { value: 'groq', label: 'Groq' },
-    { value: 'anthropic', label: 'Anthropic' },
-  ];
+  const getProviderLabel = (provider: string) => {
+    const labels: Record<string, string> = {
+      openai: 'OpenAI',
+      gemini: 'Google Gemini',
+      groq: 'Groq',
+      anthropic: 'Anthropic',
+    };
+    return labels[provider] || provider;
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Editar API Key de IA</DialogTitle>
+          <DialogTitle>Editar API Key de {getProviderLabel(apiKey.provider)}</DialogTitle>
           <DialogDescription>
-            Modifica la información de tu API key
+            Modifica tu API key y configuraciones
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="provider"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Proveedor</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un proveedor" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {providerOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="api_key"
