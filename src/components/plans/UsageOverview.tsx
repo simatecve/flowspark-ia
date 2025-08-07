@@ -56,19 +56,19 @@ export const UsageOverview = () => {
     return 'secondary' as const;
   };
 
-  const connectionsPercentage = calculatePercentage(dashboardData?.activeConnections || 0, plan.max_whatsapp_connections);
-  const contactsPercentage = calculatePercentage(dashboardData?.contactsCount || 0, plan.max_contacts);
-  const conversationsPercentage = calculatePercentage(dashboardData?.conversationsCount || 0, plan.max_conversations);
-  const campaignsPercentage = calculatePercentage(dashboardData?.totalCampaigns || 0, plan.max_monthly_campaigns);
-  const botPercentage = calculatePercentage(usage.bot_responses_this_month, plan.max_bot_responses);
-  const storagePercentage = calculatePercentage(usage.storage_used_mb, plan.max_storage_mb);
+  const connectionsPercentage = calculatePercentage(dashboardData?.activeConnections || 0, plan.max_whatsapp_connections || 1);
+  const contactsPercentage = calculatePercentage(dashboardData?.contactsCount || 0, plan.max_contacts || 1);
+  const conversationsPercentage = calculatePercentage(dashboardData?.conversationsCount || 0, plan.max_conversations || 100);
+  const campaignsPercentage = calculatePercentage(dashboardData?.totalCampaigns || 0, plan.max_monthly_campaigns || 1);
+  const botPercentage = calculatePercentage(usage.bot_responses_this_month, plan.max_bot_responses || 1);
+  const storagePercentage = calculatePercentage(usage.storage_used_mb, plan.max_storage_mb || 1);
 
   const usageItems = [
     {
       name: 'Conexiones WhatsApp',
       icon: Phone,
       used: dashboardData?.activeConnections || 0,
-      limit: plan.max_whatsapp_connections,
+      limit: plan.max_whatsapp_connections || 1,
       percentage: connectionsPercentage,
       color: 'text-emerald-600'
     },
@@ -76,7 +76,7 @@ export const UsageOverview = () => {
       name: 'Conversaciones',
       icon: MessageCircle,
       used: dashboardData?.conversationsCount || 0,
-      limit: plan.max_conversations,
+      limit: plan.max_conversations || 100,
       percentage: conversationsPercentage,
       color: 'text-blue-600'
     },
@@ -84,7 +84,7 @@ export const UsageOverview = () => {
       name: 'Contactos',
       icon: Users,
       used: dashboardData?.contactsCount || 0,
-      limit: plan.max_contacts,
+      limit: plan.max_contacts || 1,
       percentage: contactsPercentage,
       color: 'text-blue-600'
     },
@@ -92,7 +92,7 @@ export const UsageOverview = () => {
       name: 'Campañas este mes',
       icon: Megaphone,
       used: dashboardData?.totalCampaigns || 0,
-      limit: plan.max_monthly_campaigns,
+      limit: plan.max_monthly_campaigns || 1,
       percentage: campaignsPercentage,
       color: 'text-orange-600'
     },
@@ -100,7 +100,7 @@ export const UsageOverview = () => {
       name: 'Respuestas Bot',
       icon: Bot,
       used: usage.bot_responses_this_month,
-      limit: plan.max_bot_responses,
+      limit: plan.max_bot_responses || 1,
       percentage: botPercentage,
       color: 'text-green-600'
     },
@@ -108,7 +108,7 @@ export const UsageOverview = () => {
       name: 'Almacenamiento',
       icon: HardDrive,
       used: usage.storage_used_mb,
-      limit: plan.max_storage_mb,
+      limit: plan.max_storage_mb || 1,
       percentage: storagePercentage,
       color: 'text-purple-600',
       unit: 'MB'
@@ -121,7 +121,7 @@ export const UsageOverview = () => {
         <CardHeader>
           <CardTitle>Plan Actual: {plan.name}</CardTitle>
           <CardDescription>
-            ${plan.price}/mes - {plan.description}
+            ${plan.price || 0}/mes - {plan.description || 'Sin descripción'}
           </CardDescription>
         </CardHeader>
         <CardContent>

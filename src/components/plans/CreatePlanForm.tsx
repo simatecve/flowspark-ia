@@ -20,6 +20,7 @@ const createPlanSchema = z.object({
   max_bot_responses: z.number().min(1, 'Debe permitir al menos 1 respuesta'),
   max_storage_mb: z.number().min(1, 'Debe permitir al menos 1MB de almacenamiento'),
   max_device_sessions: z.number().min(1, 'Debe permitir al menos 1 sesión de dispositivo'),
+  max_conversations: z.number().min(1, 'Debe permitir al menos 1 conversación'),
 });
 
 type CreatePlanFormData = z.infer<typeof createPlanSchema>;
@@ -44,6 +45,7 @@ export const CreatePlanForm = () => {
       max_bot_responses: 100,
       max_storage_mb: 100,
       max_device_sessions: 1,
+      max_conversations: 50,
     }
   });
 
@@ -58,6 +60,7 @@ export const CreatePlanForm = () => {
       max_bot_responses: data.max_bot_responses,
       max_storage_mb: data.max_storage_mb,
       max_device_sessions: data.max_device_sessions,
+      max_conversations: data.max_conversations,
     };
     
     createPlan.mutate(planData, {
@@ -137,6 +140,18 @@ export const CreatePlanForm = () => {
               />
               {errors.max_contacts && (
                 <p className="text-sm text-destructive">{errors.max_contacts.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="max_conversations">Máx. Conversaciones</Label>
+              <Input
+                id="max_conversations"
+                type="number"
+                {...register('max_conversations', { valueAsNumber: true })}
+              />
+              {errors.max_conversations && (
+                <p className="text-sm text-destructive">{errors.max_conversations.message}</p>
               )}
             </div>
 

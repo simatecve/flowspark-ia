@@ -27,6 +27,7 @@ const editPlanSchema = z.object({
   max_bot_responses: z.number().min(1, 'Debe permitir al menos 1 respuesta'),
   max_storage_mb: z.number().min(1, 'Debe permitir al menos 1MB de almacenamiento'),
   max_device_sessions: z.number().min(1, 'Debe permitir al menos 1 sesión de dispositivo'),
+  max_conversations: z.number().min(1, 'Debe permitir al menos 1 conversación'),
 });
 
 type EditPlanFormData = z.infer<typeof editPlanSchema>;
@@ -55,6 +56,7 @@ export const EditPlanModal = ({ plan, onClose }: EditPlanModalProps) => {
       max_bot_responses: plan.max_bot_responses,
       max_storage_mb: plan.max_storage_mb,
       max_device_sessions: plan.max_device_sessions,
+      max_conversations: plan.max_conversations || 100,
     }
   });
 
@@ -72,6 +74,7 @@ export const EditPlanModal = ({ plan, onClose }: EditPlanModalProps) => {
       max_bot_responses: data.max_bot_responses,
       max_storage_mb: data.max_storage_mb,
       max_device_sessions: data.max_device_sessions,
+      max_conversations: data.max_conversations,
     };
     
     updatePlan.mutate(updateData, {
@@ -143,6 +146,15 @@ export const EditPlanModal = ({ plan, onClose }: EditPlanModalProps) => {
                 id="edit-contacts"
                 type="number"
                 {...register('max_contacts', { valueAsNumber: true })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-conversations">Máx. Conversaciones</Label>
+              <Input
+                id="edit-conversations"
+                type="number"
+                {...register('max_conversations', { valueAsNumber: true })}
               />
             </div>
 

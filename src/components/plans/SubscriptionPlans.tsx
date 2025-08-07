@@ -54,7 +54,7 @@ export const SubscriptionPlans = () => {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">{plan.name}</CardTitle>
                   <Badge variant={isCurrentPlan ? "default" : "secondary"}>
-                    ${plan.price}/mes
+                    ${plan.price || 0}/mes
                   </Badge>
                 </div>
                 {isCurrentPlan && (
@@ -63,38 +63,38 @@ export const SubscriptionPlans = () => {
                     Plan Actual
                   </Badge>
                 )}
-                <CardDescription>{plan.description}</CardDescription>
+                <CardDescription>{plan.description || 'Sin descripción'}</CardDescription>
               </CardHeader>
               
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Phone className="h-4 w-4 text-emerald-600" />
-                    <span>{plan.max_whatsapp_connections} conexiones WhatsApp</span>
+                    <span>{plan.max_whatsapp_connections || 0} conexiones WhatsApp</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <MessageCircle className="h-4 w-4 text-blue-600" />
-                    <span>{plan.max_conversations.toLocaleString()} conversaciones</span>
+                    <span>{(plan.max_conversations || 100).toLocaleString()} conversaciones</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Users className="h-4 w-4 text-blue-600" />
-                    <span>{plan.max_contacts.toLocaleString()} contactos</span>
+                    <span>{(plan.max_contacts || 0).toLocaleString()} contactos</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Megaphone className="h-4 w-4 text-orange-600" />
-                    <span>{plan.max_monthly_campaigns} campañas mensuales</span>
+                    <span>{plan.max_monthly_campaigns || 0} campañas mensuales</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Bot className="h-4 w-4 text-green-600" />
-                    <span>{plan.max_bot_responses.toLocaleString()} respuestas bot</span>
+                    <span>{(plan.max_bot_responses || 0).toLocaleString()} respuestas bot</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <HardDrive className="h-4 w-4 text-purple-600" />
-                    <span>{plan.max_storage_mb}MB almacenamiento</span>
+                    <span>{plan.max_storage_mb || 0}MB almacenamiento</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Monitor className="h-4 w-4 text-indigo-600" />
-                    <span>{plan.max_device_sessions} sesión{plan.max_device_sessions > 1 ? 'es' : ''} de dispositivo</span>
+                    <span>{plan.max_device_sessions || 1} sesión{(plan.max_device_sessions || 1) > 1 ? 'es' : ''} de dispositivo</span>
                   </div>
                 </div>
 

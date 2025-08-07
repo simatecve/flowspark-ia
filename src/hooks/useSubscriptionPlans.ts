@@ -45,6 +45,7 @@ export const useCreatePlan = () => {
           max_bot_responses: planData.max_bot_responses,
           max_storage_mb: planData.max_storage_mb,
           max_device_sessions: planData.max_device_sessions,
+          max_conversations: planData.max_conversations,
         }])
         .select()
         .single();
@@ -86,6 +87,7 @@ export const useUpdatePlan = () => {
           max_bot_responses: planData.max_bot_responses,
           max_storage_mb: planData.max_storage_mb,
           max_device_sessions: planData.max_device_sessions,
+          max_conversations: planData.max_conversations,
         })
         .eq('id', planData.id)
         .select()
