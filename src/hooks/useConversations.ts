@@ -23,7 +23,7 @@ export const useConversations = (instanceName?: string) => {
       // Primero obtener las instancias del usuario
       const { data: userConnections, error: connectionsError } = await supabase
         .from('whatsapp_connections')
-        .select('name')
+        .select('name, color')
         .eq('user_id', user.id);
 
       if (connectionsError) {
@@ -38,8 +38,10 @@ export const useConversations = (instanceName?: string) => {
         return [];
       }
 
-      // Obtener SOLO las conversaciones del usuario autenticado
-      const { data, error } = await supabase
+      console.log('User instance names:', userInstanceNames);
+
+      // Obtener conversaciones filtrando ESTRICTAMENTE por user_id
+      let conversationsQuery = supabase
         .from('conversations')
         .select(`
           id,
@@ -52,7 +54,9 @@ export const useConversations = (instanceName?: string) => {
           created_at,
           updated_at
         `)
-        .eq('user_id', user.id) // FILTRO CRÍTICO: Solo conversaciones del usuario
+        .eq('user_id', user.id); // FILTRO CRÍTICO: Solo conversaciones del usuario
+
+      const { data: userConversations, error } = await conversationsQuery
         .order('last_message_at', { ascending: false });
 
       if (error) {
@@ -60,17 +64,19 @@ export const useConversations = (instanceName?: string) => {
         throw error;
       }
 
-      if (!data || data.length === 0) {
+      if (!userConversations || userConversations.length === 0) {
         console.log('No conversations found for user');
         return [];
       }
 
-      // Para cada conversación, obtener sus mensajes para determinar la instancia
-      const conversationsWithInstances = [];
+      console.log('Found user conversations:', userConversations.length);
+
+      // Filtrar conversaciones que tienen mensajes de las instancias del usuario
+      const validConversations = [];
       
-      for (const conv of data) {
-        // Obtener mensajes de esta conversación que pertenezcan a instancias del usuario
-        const { data: messages, error: messagesError } = await supabase
+      for (const conv of userConversations) {
+        // Verificar que esta conversación tiene mensajes de instancias del usuario
+        const { data: conversationMessages, error: messagesError } = await supabase
           .from('messages')
           .select('instance_name, direction, message, created_at, pushname')
           .eq('conversation_id', conv.id)
@@ -83,41 +89,42 @@ export const useConversations = (instanceName?: string) => {
           continue;
         }
 
-        if (!messages || messages.length === 0) {
-          // Si no hay mensajes válidos para esta conversación, omitirla
+        if (!conversationMessages || conversationMessages.length === 0) {
+          console.log('Conversation has no valid messages, skipping:', conv.id);
           continue;
         }
 
-        // Si se especifica una instancia, filtrar por ella
-        const filteredMessages = instanceName 
-          ? messages.filter(msg => msg.instance_name === instanceName)
-          : messages;
+        // Si se especifica una instancia específica, filtrar por ella
+        const filteredMessages = instanceName && instanceName !== 'all'
+          ? conversationMessages.filter(msg => msg.instance_name === instanceName)
+          : conversationMessages;
 
         if (filteredMessages.length === 0) {
-          // Si después del filtro no quedan mensajes, omitir esta conversación
+          console.log('No messages after instance filter, skipping conversation:', conv.id);
           continue;
         }
 
         const firstMessage = filteredMessages[0];
-        const instanceNameForConv = firstMessage.instance_name;
+        const conversationInstanceName = firstMessage.instance_name;
 
         // Verificar una vez más que la instancia pertenece al usuario
-        if (!userInstanceNames.includes(instanceNameForConv)) {
+        if (!userInstanceNames.includes(conversationInstanceName)) {
+          console.log('Instance does not belong to user, skipping:', conversationInstanceName);
           continue;
         }
 
         // Buscar el último mensaje incoming para mostrar
         const incomingMessages = filteredMessages.filter(msg => msg.direction === 'incoming');
-        const lastIncomingMessage = incomingMessages[0]; // Ya están ordenados desc
+        const lastIncomingMessage = incomingMessages[0];
 
-        // Obtener información de color de la instancia
-        const connection = userConnections?.find(conn => conn.name === instanceNameForConv);
+        // Obtener color de la instancia
+        const instanceConnection = userConnections?.find(conn => conn.name === conversationInstanceName);
         
-        conversationsWithInstances.push({
+        validConversations.push({
           id: conv.id,
           user_id: conv.user_id,
-          instance_name: instanceNameForConv,
-          instance_color: '#6b7280', // Color por defecto, se actualizará abajo
+          instance_name: conversationInstanceName,
+          instance_color: instanceConnection?.color || '#6b7280',
           whatsapp_number: conv.whatsapp_number,
           pushname: conv.pushname || lastIncomingMessage?.pushname || '',
           last_message: lastIncomingMessage?.message || '',
@@ -128,26 +135,8 @@ export const useConversations = (instanceName?: string) => {
         });
       }
 
-      // Obtener colores de las instancias
-      const { data: connections, error: connectionsError2 } = await supabase
-        .from('whatsapp_connections')
-        .select('name, color')
-        .eq('user_id', user.id);
-
-      if (!connectionsError2 && connections) {
-        const instanceColorMap = connections.reduce((acc, conn) => {
-          acc[conn.name] = conn.color;
-          return acc;
-        }, {} as Record<string, string>);
-
-        // Actualizar colores
-        conversationsWithInstances.forEach(conv => {
-          conv.instance_color = instanceColorMap[conv.instance_name] || '#6b7280';
-        });
-      }
-
-      console.log(`Fetched ${conversationsWithInstances.length} conversations for user ${user.id}`);
-      return conversationsWithInstances as Conversation[];
+      console.log(`Returning ${validConversations.length} valid conversations for user ${user.id}`);
+      return validConversations as Conversation[];
     },
     enabled: !!user,
   });
