@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { Plus, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Plus, MoreVertical, Edit, Trash2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LeadCard } from './LeadCard';
 import { EditColumnModal } from './EditColumnModal';
+import { ConvertToContactsModal } from './ConvertToContactsModal';
 import type { LeadColumn, Lead } from '@/types/leads';
 import { useLeads } from '@/hooks/useLeads';
 import { useLeadColumns } from '@/hooks/useLeadColumns';
@@ -29,6 +30,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onCreateLead
 }) => {
   const [editingColumn, setEditingColumn] = useState<LeadColumn | null>(null);
+  const [convertingColumn, setConvertingColumn] = useState<LeadColumn | null>(null);
   const { moveLead } = useLeads();
   const { deleteColumn } = useLeadColumns();
 
@@ -86,6 +88,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
   };
 
+  const handleConvertToContacts = (column: LeadColumn) => {
+    setConvertingColumn(column);
+  };
+
   return (
     <div className="flex-1 overflow-x-auto">
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -93,6 +99,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           {columns.map((column) => {
             const columnLeads = getLeadsByColumn(column.id);
             const totalValue = columnLeads.reduce((sum, lead) => sum + (lead.value || 0), 0);
+            const leadsWithPhone = columnLeads.filter(lead => lead.phone && lead.phone.trim()).length;
 
             return (
               <div key={column.id} className="flex-shrink-0 w-80">
@@ -121,6 +128,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                           </DropdownMenuItem>
+                          {columnLeads.length > 0 && (
+                            <DropdownMenuItem onClick={() => handleConvertToContacts(column)}>
+                              <Users className="mr-2 h-4 w-4" />
+                              Convertir a Contactos ({leadsWithPhone})
+                            </DropdownMenuItem>
+                          )}
                           {!column.is_default && (
                             <DropdownMenuItem 
                               onClick={() => handleDeleteColumn(column)}
@@ -137,6 +150,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     {totalValue > 0 && (
                       <p className="text-sm text-muted-foreground">
                         Valor total: ${totalValue.toLocaleString()}
+                      </p>
+                    )}
+
+                    {leadsWithPhone > 0 && leadsWithPhone !== columnLeads.length && (
+                      <p className="text-xs text-muted-foreground">
+                        {leadsWithPhone} leads con teléfono
                       </p>
                     )}
                   </CardHeader>
@@ -193,6 +212,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           isOpen={!!editingColumn}
           onClose={() => setEditingColumn(null)}
           column={editingColumn}
+        />
+      )}
+
+      {convertingColumn && (
+        <ConvertToContactsModal
+          isOpen={!!convertingColumn}
+          onClose={() => setConvertingColumn(null)}
+          column={convertingColumn}
+          leads={getLeadsByColumn(convertingColumn.id)}
         />
       )}
     </div>
