@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,42 +15,51 @@ export const useMessages = (conversationId: string | null) => {
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['messages', conversationId, user?.id],
     queryFn: async () => {
-      if (!conversationId) return [];
+      if (!conversationId || !user) return [];
       
       console.log('Fetching messages for conversation:', conversationId, 'user:', user?.id);
       
       // Verificar que la conversación pertenece al usuario antes de obtener mensajes
-      if (user) {
-        const { data: conversation, error: convError } = await supabase
-          .from('conversations')
-          .select('user_id')
-          .eq('id', conversationId)
-          .single();
+      const { data: conversation, error: convError } = await supabase
+        .from('conversations')
+        .select('user_id')
+        .eq('id', conversationId)
+        .eq('user_id', user.id)
+        .single();
 
-        if (convError) {
-          console.error('Error verifying conversation ownership:', convError);
-          throw convError;
-        }
-
-        // Si la conversación tiene user_id y no coincide con el usuario actual, denegar acceso
-        if (conversation.user_id && conversation.user_id !== user.id) {
-          console.error('User does not own this conversation');
-          throw new Error('Access denied to this conversation');
-        }
+      if (convError || !conversation) {
+        console.error('Error verifying conversation ownership:', convError);
+        throw new Error('Access denied to this conversation');
       }
+
+      // Obtener las instancias del usuario para verificar que los mensajes son válidos
+      const { data: userConnections, error: connectionsError } = await supabase
+        .from('whatsapp_connections')
+        .select('name')
+        .eq('user_id', user.id);
+
+      if (connectionsError) {
+        console.error('Error fetching user connections:', connectionsError);
+        throw connectionsError;
+      }
+
+      const userInstanceNames = userConnections?.map(conn => conn.name) || [];
       
-      // Fetch messages - las políticas RLS manejarán el control de acceso
+      // Fetch messages - solo los de las instancias del usuario
       const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
+        .eq('user_id', user.id)
+        .in('instance_name', userInstanceNames)
         .order('created_at', { ascending: true });
 
       if (error) {
         console.error('Error fetching messages:', error);
         throw error;
       }
-      console.log('Fetched messages:', data);
+      
+      console.log('Fetched messages for user instances:', data);
       return data as Message[];
     },
     enabled: !!conversationId && !!user,
@@ -58,8 +68,11 @@ export const useMessages = (conversationId: string | null) => {
   // Mutación para enviar mensaje a una conversación específica (solo webhook, no guardar en BD)
   const sendMessageToConversationMutation = useMutation({
     mutationFn: async (messageData: SendMessageToConversationData) => {
+      if (!user) throw new Error('User not authenticated');
+      
       console.log('Sending message to conversation:', messageData);
 
+      // Verificar que la conversación pertenece al usuario
       const { data: conversationInfo, error: convError } = await supabase
         .from('conversations')
         .select(`
@@ -68,21 +81,36 @@ export const useMessages = (conversationId: string | null) => {
           user_id
         `)
         .eq('id', messageData.conversation_id)
+        .eq('user_id', user.id)
         .single();
 
       if (convError || !conversationInfo) {
-        throw new Error('Error obteniendo información de la conversación');
+        throw new Error('Error obteniendo información de la conversación o acceso denegado');
       }
 
+      // Obtener el primer mensaje de la conversación para verificar la instancia
       const { data: firstMessage, error: msgError } = await supabase
         .from('messages')
         .select('instance_name')
         .eq('conversation_id', messageData.conversation_id)
+        .eq('user_id', user.id)
         .limit(1)
         .single();
 
       if (msgError || !firstMessage) {
         throw new Error('Error obteniendo el nombre de instancia');
+      }
+
+      // Verificar que la instancia pertenece al usuario
+      const { data: userConnection, error: connectionError } = await supabase
+        .from('whatsapp_connections')
+        .select('name')
+        .eq('name', firstMessage.instance_name)
+        .eq('user_id', user.id)
+        .single();
+
+      if (connectionError || !userConnection) {
+        throw new Error('Instancia no válida o no pertenece al usuario');
       }
 
       const instanceName = firstMessage.instance_name;
@@ -109,7 +137,7 @@ export const useMessages = (conversationId: string | null) => {
         is_bot: false,
         attachment_url: messageData.attachment_url,
         message_type: messageData.message_type || (messageData.attachment_url ? 'image' : 'text'),
-        user_id: conversationInfo.user_id || (user ? user.id : null),
+        user_id: user.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       } as Message;
@@ -131,10 +159,23 @@ export const useMessages = (conversationId: string | null) => {
   });
 
   // Mutación para crear mensaje (automáticamente crea o determina la conversación)
-  // Esta se usa para crear conversaciones desde otros lugares, no desde el chat
   const createMessageMutation = useMutation({
     mutationFn: async (messageData: CreateMessageData) => {
+      if (!user) throw new Error('User not authenticated');
+      
       console.log('Creating message:', messageData);
+
+      // Verificar que la instancia pertenece al usuario
+      const { data: userConnection, error: connectionError } = await supabase
+        .from('whatsapp_connections')
+        .select('name')
+        .eq('name', messageData.instance_name)
+        .eq('user_id', user.id)
+        .single();
+
+      if (connectionError || !userConnection) {
+        throw new Error('Instancia no válida o no pertenece al usuario');
+      }
 
       const webhookSuccess = await sendWebhook({
         instance_name: messageData.instance_name,
@@ -151,7 +192,7 @@ export const useMessages = (conversationId: string | null) => {
         .from('messages')
         .insert({
           ...messageData,
-          user_id: user ? user.id : null,
+          user_id: user.id,
         })
         .select()
         .single();

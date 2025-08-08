@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,9 +13,32 @@ export const useConversations = (instanceName?: string) => {
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ['conversations', instanceName, user?.id],
     queryFn: async () => {
+      if (!user) {
+        console.log('No user authenticated, returning empty conversations');
+        return [];
+      }
+
       console.log('Fetching conversations for user:', user?.id, 'instance:', instanceName);
       
-      // Construir la consulta base - SOLO para el usuario autenticado o conversaciones públicas
+      // Primero obtener las instancias del usuario para filtrar las conversaciones
+      const { data: userConnections, error: connectionsError } = await supabase
+        .from('whatsapp_connections')
+        .select('name')
+        .eq('user_id', user.id);
+
+      if (connectionsError) {
+        console.error('Error fetching user connections:', connectionsError);
+        throw connectionsError;
+      }
+
+      const userInstanceNames = userConnections?.map(conn => conn.name) || [];
+      
+      if (userInstanceNames.length === 0) {
+        console.log('User has no WhatsApp connections, returning empty conversations');
+        return [];
+      }
+
+      // Construir la consulta base - SOLO para conversaciones del usuario y sus instancias
       let query = supabase
         .from('conversations')
         .select(`
@@ -29,11 +53,12 @@ export const useConversations = (instanceName?: string) => {
           updated_at,
           messages!inner(instance_name, direction, message, created_at, pushname)
         `)
-        .or(user ? `user_id.eq.${user.id},user_id.is.null` : 'user_id.is.null')
+        .eq('user_id', user.id)
+        .in('messages.instance_name', userInstanceNames)
         .order('last_message_at', { ascending: false });
 
-      // Si se especifica una instancia, filtrar por ella
-      if (instanceName) {
+      // Si se especifica una instancia, filtrar por ella (verificando que pertenece al usuario)
+      if (instanceName && userInstanceNames.includes(instanceName)) {
         query = query.eq('messages.instance_name', instanceName);
       }
 
@@ -45,13 +70,13 @@ export const useConversations = (instanceName?: string) => {
       }
 
       // Obtener información de las conexiones de WhatsApp para los colores - SOLO del usuario
-      const { data: connections, error: connectionsError } = await supabase
+      const { data: connections, error: connectionsError2 } = await supabase
         .from('whatsapp_connections')
         .select('name, color')
-        .eq('user_id', user?.id || ''); // Filtrar por usuario autenticado
+        .eq('user_id', user.id);
 
-      if (connectionsError) {
-        console.error('Error fetching WhatsApp connections:', connectionsError);
+      if (connectionsError2) {
+        console.error('Error fetching WhatsApp connections for colors:', connectionsError2);
       }
 
       // Crear un mapa de nombre de instancia -> color
@@ -66,6 +91,15 @@ export const useConversations = (instanceName?: string) => {
         let filteredMessages = conv.messages || [];
         if (instanceName) {
           filteredMessages = filteredMessages.filter((msg: any) => msg.instance_name === instanceName);
+        }
+
+        // Verificar que todos los mensajes son de instancias del usuario
+        filteredMessages = filteredMessages.filter((msg: any) => 
+          userInstanceNames.includes(msg.instance_name)
+        );
+
+        if (filteredMessages.length === 0) {
+          return null; // Filtrar conversaciones sin mensajes válidos
         }
 
         // Buscar el último mensaje incoming (no outgoing) para mostrar en la lista
@@ -83,34 +117,56 @@ export const useConversations = (instanceName?: string) => {
         const contactPushname = firstIncomingMessage?.pushname || conv.pushname;
         const currentInstanceName = filteredMessages[0]?.instance_name || '';
 
+        // Verificar que la instancia pertenece al usuario
+        if (!userInstanceNames.includes(currentInstanceName)) {
+          return null;
+        }
+
         return {
           id: conv.id,
           user_id: conv.user_id,
           instance_name: currentInstanceName,
-          instance_color: instanceColorMap[currentInstanceName] || '#6b7280', // Color gris por defecto
+          instance_color: instanceColorMap[currentInstanceName] || '#6b7280',
           whatsapp_number: conv.whatsapp_number,
-          pushname: contactPushname, // Siempre el pushname del contacto (incoming)
-          last_message: lastIncomingMessage?.message || '', // Solo mostrar mensajes incoming
+          pushname: contactPushname,
+          last_message: lastIncomingMessage?.message || '',
           last_message_at: lastIncomingMessage?.created_at || conv.last_message_at,
           unread_count: conv.unread_count,
           created_at: conv.created_at,
           updated_at: conv.updated_at,
         };
-      }) || [];
+      }).filter(Boolean) || []; // Filtrar elementos null
 
-      console.log('Fetched conversations:', transformedData);
+      console.log('Fetched conversations for user instances:', transformedData);
       return transformedData as Conversation[];
     },
-    enabled: !!user, // Solo ejecutar si hay usuario autenticado
+    enabled: !!user,
   });
 
   const markAsReadMutation = useMutation({
     mutationFn: async (conversationId: string) => {
+      if (!user) throw new Error('User not authenticated');
+      
       console.log('Marking conversation as read:', conversationId);
+      
+      // Verificar que la conversación pertenece al usuario
+      const { data: conversation, error: fetchError } = await supabase
+        .from('conversations')
+        .select('user_id')
+        .eq('id', conversationId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (fetchError || !conversation) {
+        console.error('Conversation not found or access denied:', fetchError);
+        throw new Error('Conversación no encontrada o acceso denegado');
+      }
+
       const { error } = await supabase
         .from('conversations')
         .update({ unread_count: 0 })
-        .eq('id', conversationId);
+        .eq('id', conversationId)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Error marking conversation as read:', error);
