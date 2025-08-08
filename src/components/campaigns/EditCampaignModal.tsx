@@ -32,7 +32,7 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
   const [name, setName] = useState(campaign?.name || '');
   const [description, setDescription] = useState(campaign?.description || '');
   const [whatsappConnection, setWhatsappConnection] = useState(campaign?.whatsapp_connection_name || '');
-  const [contactList, setContactList] = useState(campaign?.contact_list_id || '');
+  const [contactList, setContactList] = useState(campaign?.contact_list_id || 'none');
   const [message, setMessage] = useState(campaign?.campaign_message || '');
   const [editWithAI, setEditWithAI] = useState(campaign?.edit_with_ai || false);
   const [minDelay, setMinDelay] = useState(campaign?.min_delay?.toString() || '1000');
@@ -49,7 +49,7 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
       setName(campaign.name);
       setDescription(campaign.description || '');
       setWhatsappConnection(campaign.whatsapp_connection_name);
-      setContactList(campaign.contact_list_id || '');
+      setContactList(campaign.contact_list_id || 'none');
       setMessage(campaign.campaign_message);
       setEditWithAI(campaign.edit_with_ai);
       setMinDelay(campaign.min_delay.toString());
@@ -95,7 +95,7 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
       name: name.trim(),
       description: description.trim() || undefined,
       whatsapp_connection_name: whatsappConnection,
-      contact_list_id: contactList || undefined,
+      contact_list_id: contactList === 'none' ? undefined : contactList,
       campaign_message: message.trim(),
       edit_with_ai: editWithAI,
       min_delay: minDelayNum,
@@ -166,7 +166,7 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
                 <SelectValue placeholder="Selecciona una lista de contactos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin lista específica</SelectItem>
+                <SelectItem value="none">Sin lista específica</SelectItem>
                 {contactLists?.map((list) => (
                   <SelectItem key={list.id} value={list.id}>
                     {list.name}
