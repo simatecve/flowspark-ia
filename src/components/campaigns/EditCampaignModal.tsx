@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { FileUpload } from './FileUpload';
+import { FileUpload, type AttachmentFile } from './FileUpload';
 import { useWhatsAppConnections } from '@/hooks/useWhatsAppConnections';
 import { useContactLists } from '@/hooks/useContactLists';
 import { useMassCampaigns, type MassCampaign } from '@/hooks/useMassCampaigns';
@@ -37,8 +37,7 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
   const [editWithAI, setEditWithAI] = useState(campaign?.edit_with_ai || false);
   const [minDelay, setMinDelay] = useState(campaign?.min_delay?.toString() || '1000');
   const [maxDelay, setMaxDelay] = useState(campaign?.max_delay?.toString() || '5000');
-  const [attachmentUrls, setAttachmentUrls] = useState<string[]>(campaign?.attachment_urls || []);
-  const [attachmentNames, setAttachmentNames] = useState<string[]>(campaign?.attachment_names || []);
+  const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
 
   const { connections } = useWhatsAppConnections();
   const { contactLists } = useContactLists();
@@ -55,8 +54,20 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
       setEditWithAI(campaign.edit_with_ai);
       setMinDelay(campaign.min_delay.toString());
       setMaxDelay(campaign.max_delay.toString());
-      setAttachmentUrls(campaign.attachment_urls || []);
-      setAttachmentNames(campaign.attachment_names || []);
+      
+      // Convertir los arrays de URLs y nombres a AttachmentFile[]
+      const campaignAttachments: AttachmentFile[] = [];
+      if (campaign.attachment_urls && campaign.attachment_names) {
+        for (let i = 0; i < campaign.attachment_urls.length; i++) {
+          if (campaign.attachment_urls[i] && campaign.attachment_names[i]) {
+            campaignAttachments.push({
+              url: campaign.attachment_urls[i],
+              name: campaign.attachment_names[i]
+            });
+          }
+        }
+      }
+      setAttachments(campaignAttachments);
     }
   }, [campaign]);
 
@@ -75,6 +86,10 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
       return;
     }
 
+    // Convertir AttachmentFile[] a arrays separados
+    const attachmentUrls = attachments.map(att => att.url);
+    const attachmentNames = attachments.map(att => att.name);
+
     updateCampaign({
       id: campaign.id,
       name: name.trim(),
@@ -90,16 +105,6 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
     });
 
     onClose();
-  };
-
-  const handleFileUploaded = (url: string, filename: string) => {
-    setAttachmentUrls(prev => [...prev, url]);
-    setAttachmentNames(prev => [...prev, filename]);
-  };
-
-  const removeAttachment = (index: number) => {
-    setAttachmentUrls(prev => prev.filter((_, i) => i !== index));
-    setAttachmentNames(prev => prev.filter((_, i) => i !== index));
   };
 
   if (!campaign) return null;
@@ -183,32 +188,11 @@ export const EditCampaignModal: React.FC<EditCampaignModalProps> = ({
             />
           </div>
 
-          <div className="space-y-4">
-            <Label>Adjuntos</Label>
-            <FileUpload onFileUploaded={handleFileUploaded} />
-            
-            {attachmentUrls.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Archivos adjuntos:</p>
-                <div className="flex flex-wrap gap-2">
-                  {attachmentNames.map((name, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-muted p-2 rounded-md">
-                      <span className="text-sm">{name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0"
-                        onClick={() => removeAttachment(index)}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <FileUpload
+            attachments={attachments}
+            onAttachmentsChange={setAttachments}
+            disabled={isUpdatingCampaign}
+          />
 
           <div className="flex items-center space-x-2">
             <Switch
