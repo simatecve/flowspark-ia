@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,11 +10,11 @@ export const useConversations = (instanceName?: string) => {
   const queryClient = useQueryClient();
 
   const { data: conversations = [], isLoading } = useQuery({
-    queryKey: ['conversations', instanceName],
+    queryKey: ['conversations', instanceName, user?.id],
     queryFn: async () => {
       console.log('Fetching conversations for user:', user?.id, 'instance:', instanceName);
       
-      // Construir la consulta base
+      // Construir la consulta base - SOLO para el usuario autenticado o conversaciones públicas
       let query = supabase
         .from('conversations')
         .select(`
@@ -45,10 +44,11 @@ export const useConversations = (instanceName?: string) => {
         throw error;
       }
 
-      // Obtener información de las conexiones de WhatsApp para los colores
+      // Obtener información de las conexiones de WhatsApp para los colores - SOLO del usuario
       const { data: connections, error: connectionsError } = await supabase
         .from('whatsapp_connections')
-        .select('name, color');
+        .select('name, color')
+        .eq('user_id', user?.id || ''); // Filtrar por usuario autenticado
 
       if (connectionsError) {
         console.error('Error fetching WhatsApp connections:', connectionsError);
@@ -101,6 +101,7 @@ export const useConversations = (instanceName?: string) => {
       console.log('Fetched conversations:', transformedData);
       return transformedData as Conversation[];
     },
+    enabled: !!user, // Solo ejecutar si hay usuario autenticado
   });
 
   const markAsReadMutation = useMutation({

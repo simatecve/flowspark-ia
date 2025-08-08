@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,14 +9,17 @@ export const useWhatsAppConnections = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Obtener conexiones de WhatsApp
+  // Obtener conexiones de WhatsApp - SOLO del usuario autenticado
   const { data: connections, isLoading: isLoadingConnections } = useQuery({
-    queryKey: ['whatsapp-connections'],
+    queryKey: ['whatsapp-connections', user?.id],
     queryFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+      
       console.log('Fetching WhatsApp connections for user:', user?.id);
       const { data, error } = await supabase
         .from('whatsapp_connections')
         .select('*')
+        .eq('user_id', user.id) // Filtrar explícitamente por user_id
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -124,11 +126,9 @@ export const useWhatsAppConnections = () => {
 
       console.log('Creating WhatsApp connection:', connectionData);
 
-      // Obtener la URL del webhook CREAR desde la base de datos
       const webhookUrl = await getCreateInstanceWebhook();
       console.log('Using create webhook URL:', webhookUrl);
 
-      // Ejecutar el webhook
       const webhookResponse = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
@@ -150,14 +150,13 @@ export const useWhatsAppConnections = () => {
 
       console.log('Webhook executed successfully, saving to database');
 
-      // Si el webhook fue exitoso, guardar en la base de datos con el color seleccionado
       const { data, error } = await supabase
         .from('whatsapp_connections')
         .insert({
           name: connectionData.name,
-          color: connectionData.color, // Usar el color seleccionado por el usuario
+          color: connectionData.color,
           phone_number: connectionData.phone_number,
-          user_id: user.id,
+          user_id: user.id, // Asegurar que se asigna el user_id correcto
           status: 'desconectado',
         })
         .select()
@@ -171,7 +170,7 @@ export const useWhatsAppConnections = () => {
       return data as WhatsAppConnection;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-connections'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-connections', user?.id] });
       toast({
         title: "¡Conexión creada!",
         description: "La conexión de WhatsApp se ha creado correctamente. Usa el botón 'Conectar con QR' para activarla.",
@@ -194,11 +193,11 @@ export const useWhatsAppConnections = () => {
 
       console.log('Deleting WhatsApp connection:', id);
 
-      // Primero obtener los datos de la conexión que se va a eliminar
       const { data: connectionData, error: fetchError } = await supabase
         .from('whatsapp_connections')
         .select('*')
         .eq('id', id)
+        .eq('user_id', user.id) // Verificar que la conexión pertenece al usuario
         .single();
 
       if (fetchError || !connectionData) {
@@ -206,11 +205,9 @@ export const useWhatsAppConnections = () => {
         throw new Error('No se pudo obtener la información de la conexión');
       }
 
-      // Obtener la URL del webhook ELIMINAR desde la base de datos
       const webhookUrl = await getDeleteInstanceWebhook();
       console.log('Using delete webhook URL:', webhookUrl);
 
-      // Ejecutar el webhook con los datos de la conexión a eliminar
       const webhookResponse = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
@@ -232,11 +229,11 @@ export const useWhatsAppConnections = () => {
 
       console.log('Delete webhook executed successfully, proceeding with database deletion');
 
-      // Si el webhook fue exitoso, eliminar de la base de datos
       const { error } = await supabase
         .from('whatsapp_connections')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id); // Doble verificación de seguridad
 
       if (error) {
         console.error('Error deleting connection:', error);
@@ -244,7 +241,7 @@ export const useWhatsAppConnections = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['whatsapp-connections'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-connections', user?.id] });
       toast({
         title: "Conexión eliminada",
         description: "La conexión de WhatsApp se ha eliminado correctamente.",

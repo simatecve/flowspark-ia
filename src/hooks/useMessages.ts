@@ -12,13 +12,33 @@ export const useMessages = (conversationId: string | null) => {
   const { sendWebhook } = useWebhookSender();
 
   const { data: messages = [], isLoading } = useQuery({
-    queryKey: ['messages', conversationId],
+    queryKey: ['messages', conversationId, user?.id],
     queryFn: async () => {
       if (!conversationId) return [];
       
-      console.log('Fetching messages for conversation:', conversationId);
+      console.log('Fetching messages for conversation:', conversationId, 'user:', user?.id);
       
-      // Fetch messages - the RLS policies will handle access control
+      // Verificar que la conversación pertenece al usuario antes de obtener mensajes
+      if (user) {
+        const { data: conversation, error: convError } = await supabase
+          .from('conversations')
+          .select('user_id')
+          .eq('id', conversationId)
+          .single();
+
+        if (convError) {
+          console.error('Error verifying conversation ownership:', convError);
+          throw convError;
+        }
+
+        // Si la conversación tiene user_id y no coincide con el usuario actual, denegar acceso
+        if (conversation.user_id && conversation.user_id !== user.id) {
+          console.error('User does not own this conversation');
+          throw new Error('Access denied to this conversation');
+        }
+      }
+      
+      // Fetch messages - las políticas RLS manejarán el control de acceso
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -32,7 +52,7 @@ export const useMessages = (conversationId: string | null) => {
       console.log('Fetched messages:', data);
       return data as Message[];
     },
-    enabled: !!conversationId,
+    enabled: !!conversationId && !!user,
   });
 
   // Mutación para enviar mensaje a una conversación específica (solo webhook, no guardar en BD)
@@ -40,7 +60,6 @@ export const useMessages = (conversationId: string | null) => {
     mutationFn: async (messageData: SendMessageToConversationData) => {
       console.log('Sending message to conversation:', messageData);
 
-      // Obtener información de la conversación
       const { data: conversationInfo, error: convError } = await supabase
         .from('conversations')
         .select(`
@@ -55,7 +74,6 @@ export const useMessages = (conversationId: string | null) => {
         throw new Error('Error obteniendo información de la conversación');
       }
 
-      // Obtener el instance_name del primer mensaje de la conversación
       const { data: firstMessage, error: msgError } = await supabase
         .from('messages')
         .select('instance_name')
@@ -69,7 +87,6 @@ export const useMessages = (conversationId: string | null) => {
 
       const instanceName = firstMessage.instance_name;
 
-      // Solo ejecutar el webhook, NO guardar en la base de datos
       const webhookSuccess = await sendWebhook({
         instance_name: instanceName,
         whatsapp_number: conversationInfo.whatsapp_number,
@@ -81,7 +98,6 @@ export const useMessages = (conversationId: string | null) => {
         throw new Error('Error al ejecutar el webhook');
       }
 
-      // Retornar datos simulados para mantener la consistencia de la interfaz
       return {
         id: 'temp-' + Date.now(),
         conversation_id: messageData.conversation_id,
@@ -120,7 +136,6 @@ export const useMessages = (conversationId: string | null) => {
     mutationFn: async (messageData: CreateMessageData) => {
       console.log('Creating message:', messageData);
 
-      // Ejecutar webhook primero
       const webhookSuccess = await sendWebhook({
         instance_name: messageData.instance_name,
         whatsapp_number: messageData.whatsapp_number,
@@ -132,7 +147,6 @@ export const useMessages = (conversationId: string | null) => {
         throw new Error('Error al ejecutar el webhook');
       }
 
-      // Si el webhook fue exitoso, guardar en la base de datos
       const { data, error } = await supabase
         .from('messages')
         .insert({
