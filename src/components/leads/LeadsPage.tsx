@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { KanbanBoard } from './KanbanBoard';
 import { CreateColumnModal } from './CreateColumnModal';
 import { CreateLeadModal } from './CreateLeadModal';
+import { LeadsFilters } from './LeadsFilters';
 import { useLeadColumns } from '@/hooks/useLeadColumns';
 import { useLeads } from '@/hooks/useLeads';
+import { useLeadsFilter } from '@/hooks/useLeadsFilter';
 
 export const LeadsPage = () => {
   const [isCreateColumnModalOpen, setIsCreateColumnModalOpen] = useState(false);
@@ -15,6 +17,14 @@ export const LeadsPage = () => {
 
   const { columns, isLoading: isLoadingColumns } = useLeadColumns();
   const { leads, isLoading: isLoadingLeads } = useLeads();
+  
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredLeads,
+    hasFilter,
+    resultsCount
+  } = useLeadsFilter(leads);
 
   const handleCreateLead = (columnId?: string) => {
     if (columnId) {
@@ -59,9 +69,20 @@ export const LeadsPage = () => {
         </div>
       </div>
 
+      <LeadsFilters
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+      />
+
+      {hasFilter && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>Mostrando {resultsCount} de {leads.length} leads</span>
+        </div>
+      )}
+
       <KanbanBoard 
         columns={columns}
-        leads={leads}
+        leads={filteredLeads}
         onCreateLead={handleCreateLead}
       />
 
