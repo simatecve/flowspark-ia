@@ -28,32 +28,35 @@ export const MessageInput = ({
   pushname,
   disabled = false
 }: MessageInputProps) => {
+  const [inputValue, setInputValue] = useState(value);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (value.trim() && !disabled) {
-        onSend();
+      if (inputValue.trim() && !disabled) {
+        handleSendMessage();
       }
     }
   };
 
   const handleSendMessage = () => {
-    if (value.trim()) {
+    if (inputValue.trim()) {
+      onChange(inputValue);
       onSend();
+      setInputValue('');
     }
   };
 
   const handleQuickReplySelect = (selectedMessage: string) => {
-    onChange(selectedMessage);
+    setInputValue(selectedMessage);
     // Focus the textarea after selecting a quick reply
     setTimeout(() => {
       textareaRef.current?.focus();
     }, 100);
   };
 
-  const handleFileUploaded = (url: string, fileName: string) => {
+  const handleFileUploaded = (url: string) => {
     onFileUploaded(url);
   };
 
@@ -74,8 +77,8 @@ export const MessageInput = ({
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Escribe un mensaje..."
             className="min-h-[60px] max-h-32 resize-none pr-12"
@@ -94,7 +97,7 @@ export const MessageInput = ({
         {/* Send button */}
         <Button
           onClick={handleSendMessage}
-          disabled={!value.trim() || disabled}
+          disabled={!inputValue.trim() || disabled}
           size="icon"
           className="h-[60px] w-12"
         >

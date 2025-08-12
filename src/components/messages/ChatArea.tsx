@@ -35,7 +35,7 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
     });
   };
 
-  const handleFileUpload = (url: string, fileName: string) => {
+  const handleFileUploaded = (url: string) => {
     handleSendMessage('', url);
   };
 
@@ -128,7 +128,7 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
           value=""
           onChange={() => {}}
           onSend={() => handleSendMessage('')}
-          onFileUpload={handleFileUpload}
+          onFileUploaded={handleFileUploaded}
           instanceName={conversation.instance_name}
           whatsappNumber={conversation.whatsapp_number}
           pushname={conversation.pushname}
