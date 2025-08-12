@@ -383,7 +383,7 @@ export type Database = {
           id: string
           instance_name: string
           is_bot: boolean | null
-          message: string
+          message: string | null
           message_type: string | null
           pushname: string | null
           updated_at: string
@@ -398,7 +398,7 @@ export type Database = {
           id?: string
           instance_name: string
           is_bot?: boolean | null
-          message: string
+          message?: string | null
           message_type?: string | null
           pushname?: string | null
           updated_at?: string
@@ -413,7 +413,7 @@ export type Database = {
           id?: string
           instance_name?: string
           is_bot?: boolean | null
-          message?: string
+          message?: string | null
           message_type?: string | null
           pushname?: string | null
           updated_at?: string

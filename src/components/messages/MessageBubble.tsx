@@ -23,6 +23,7 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
 
     switch (message.message_type) {
       case 'image':
+      case 'imageMessage':
         return (
           <div className="mb-2">
             <img 
@@ -44,6 +45,7 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
           </div>
         );
       case 'audio':
+      case 'audioMessage':
         return (
           <div className="mb-2">
             <audio 

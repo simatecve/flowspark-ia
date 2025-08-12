@@ -6,6 +6,32 @@ import { useToast } from '@/hooks/use-toast';
 import { useWebhookSender } from '@/hooks/useWebhookSender';
 import type { Message, CreateMessageData, SendMessageToConversationData } from '@/types/messages';
 
+// Función para determinar el tipo de mensaje basado en la URL del attachment
+const getMessageTypeFromUrl = (attachmentUrl?: string, providedType?: string): string => {
+  if (providedType) return providedType;
+  if (!attachmentUrl) return 'text';
+  
+  const url = attachmentUrl.toLowerCase();
+  
+  if (url.includes('image') || url.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+    return 'imageMessage';
+  }
+  
+  if (url.includes('audio') || url.match(/\.(mp3|wav|ogg|m4a|aac)$/)) {
+    return 'audioMessage';
+  }
+  
+  if (url.match(/\.(mp4|avi|mov|wmv|flv)$/)) {
+    return 'video';
+  }
+  
+  if (url.match(/\.(pdf|doc|docx|txt|rtf)$/)) {
+    return 'document';
+  }
+  
+  return 'text';
+};
+
 export const useMessages = (conversationId: string | null) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -116,6 +142,9 @@ export const useMessages = (conversationId: string | null) => {
         throw new Error('Error al ejecutar el webhook');
       }
 
+      // Determinar el tipo de mensaje
+      const messageType = getMessageTypeFromUrl(messageData.attachment_url, messageData.message_type);
+
       return {
         id: 'temp-' + Date.now(),
         conversation_id: messageData.conversation_id,
@@ -126,7 +155,7 @@ export const useMessages = (conversationId: string | null) => {
         direction: 'outgoing',
         is_bot: false,
         attachment_url: messageData.attachment_url,
-        message_type: messageData.message_type || (messageData.attachment_url ? 'image' : 'text'),
+        message_type: messageType,
         user_id: user.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -178,10 +207,14 @@ export const useMessages = (conversationId: string | null) => {
         throw new Error('Error al ejecutar el webhook');
       }
 
+      // Determinar el tipo de mensaje
+      const messageType = getMessageTypeFromUrl(messageData.attachment_url, messageData.message_type);
+
       const { data, error } = await supabase
         .from('messages')
         .insert({
           ...messageData,
+          message_type: messageType,
           user_id: user.id,
         })
         .select()

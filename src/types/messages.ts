@@ -9,7 +9,7 @@ export interface Message {
   direction: 'incoming' | 'outgoing';
   is_bot?: boolean;
   attachment_url?: string;
-  message_type?: string;
+  message_type?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'imageMessage' | 'audioMessage';
   user_id?: string;
   created_at: string;
   updated_at: string;
@@ -37,12 +37,12 @@ export interface CreateMessageData {
   direction: 'incoming' | 'outgoing';
   is_bot?: boolean;
   attachment_url?: string;
-  message_type?: string;
+  message_type?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'imageMessage' | 'audioMessage';
 }
 
 export interface SendMessageToConversationData {
   conversation_id: string;
   message: string;
   attachment_url?: string;
-  message_type?: string;
+  message_type?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'imageMessage' | 'audioMessage';
 }
