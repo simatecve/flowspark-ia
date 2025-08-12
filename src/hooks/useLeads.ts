@@ -37,23 +37,23 @@ export const useLeads = () => {
       const instanceNames = userInstances?.map(instance => instance.name) || [];
       console.log('User instances:', instanceNames);
 
-      // Obtener leads del usuario:
-      // 1. Leads que pertenecen a sus instancias
-      // 2. Leads que el usuario creó directamente (tienen su user_id pero pueden no tener instancia)
+      // Construir la consulta para obtener leads del usuario
       let query = supabase
         .from('leads')
         .select('*')
         .eq('user_id', user.id)
         .order('position', { ascending: true });
 
-      // Si hay instancias específicas, incluir leads de esas instancias O leads sin instancia
-      // Si no hay instancias, solo mostrar leads creados directamente por el usuario
+      // Aplicar filtro de instancias
       if (instanceNames.length > 0) {
-        query = query.or(`instancia.in.(${instanceNames.join(',')}),instancia.is.null`);
+        // Incluir leads de las instancias del usuario O leads sin instancia (creados directamente)
+        query = query.or(`instancia.in.(${instanceNames.map(name => `"${name}"`).join(',')}),instancia.is.null`);
       } else {
-        // Si el usuario no tiene instancias, solo mostrar leads sin instancia asignada
+        // Si no tiene instancias, solo mostrar leads creados directamente (sin instancia)
         query = query.is('instancia', null);
       }
+
+      console.log('Executing query for user:', user.id, 'with instances:', instanceNames);
 
       const { data, error } = await query;
 
