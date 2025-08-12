@@ -55,7 +55,7 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
   }
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="flex flex-col h-full">
       {/* Header de la conversación - fijo en la parte superior */}
       <div className="flex-shrink-0 border-b p-4 bg-background sticky top-0 z-20">
         <div className="flex items-center gap-3">
@@ -82,8 +82,8 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
       </div>
 
       {/* Área de mensajes - con scroll independiente, considerando espacio para input fijo */}
-      <div className="flex-1 overflow-hidden pb-24">
-        <ScrollArea className="h-full">
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full pb-32">
           <div className="p-4">
             {isLoading ? (
               <div className="flex justify-center items-center h-full min-h-[200px]">
@@ -109,8 +109,8 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
         </ScrollArea>
       </div>
 
-      {/* Input para escribir mensajes - posición absoluta fija en la parte inferior */}
-      <div className="absolute bottom-0 left-0 right-0">
+      {/* Input para escribir mensajes - posición fija en la parte inferior */}
+      <div className="flex-shrink-0 sticky bottom-0 z-10">
         <MessageInput 
           onSendMessage={handleSendMessage}
           disabled={isSending}
