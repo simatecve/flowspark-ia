@@ -28,19 +28,27 @@ export const MessageInput = ({
   pushname,
   disabled = false
 }: MessageInputProps) => {
+  const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (value.trim() && !disabled) {
-        onSend();
+      if (message.trim() && !disabled) {
+        handleSendMessage();
       }
     }
   };
 
-  const handleQuickReplySelect = (message: string) => {
-    onChange(message);
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      onSend();
+      setMessage('');
+    }
+  };
+
+  const handleQuickReplySelect = (selectedMessage: string) => {
+    setMessage(selectedMessage);
     // Focus the textarea after selecting a quick reply
     setTimeout(() => {
       textareaRef.current?.focus();
@@ -64,8 +72,8 @@ export const MessageInput = ({
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Escribe un mensaje..."
             className="min-h-[60px] max-h-32 resize-none pr-12"
@@ -75,7 +83,7 @@ export const MessageInput = ({
           {/* File upload button */}
           <div className="absolute bottom-2 right-2">
             <FileUploadButton 
-              onFileUpload={onFileUpload}
+              onFileUploaded={onFileUpload}
               disabled={disabled}
             />
           </div>
@@ -83,8 +91,8 @@ export const MessageInput = ({
         
         {/* Send button */}
         <Button
-          onClick={onSend}
-          disabled={!value.trim() || disabled}
+          onClick={handleSendMessage}
+          disabled={!message.trim() || disabled}
           size="icon"
           className="h-[60px] w-12"
         >

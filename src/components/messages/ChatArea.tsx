@@ -35,6 +35,10 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
     });
   };
 
+  const handleFileUpload = (url: string, fileName: string) => {
+    handleSendMessage('', url);
+  };
+
   if (!conversation) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -121,7 +125,13 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
       {/* Input para escribir mensajes - posición fija en la parte inferior */}
       <div className="flex-shrink-0 sticky bottom-0 z-10">
         <MessageInput 
-          onSendMessage={handleSendMessage}
+          value=""
+          onChange={() => {}}
+          onSend={() => handleSendMessage('')}
+          onFileUpload={handleFileUpload}
+          instanceName={conversation.instance_name}
+          whatsappNumber={conversation.whatsapp_number}
+          pushname={conversation.pushname}
           disabled={isSending}
         />
       </div>
