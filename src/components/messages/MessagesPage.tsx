@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, Filter, Search } from 'lucide-react';
+import { MessageCircle, Filter, Search, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConversationList } from './ConversationList';
 import { ChatArea } from './ChatArea';
 import { InstanceSelector } from './InstanceSelector';
+import { ScheduledMessagesTab } from './ScheduledMessagesTab';
 import { useConversations } from '@/hooks/useConversations';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -92,57 +94,76 @@ export const MessagesPage = () => {
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Mensajería</h2>
         <p className="text-muted-foreground">
-          Gestiona tus conversaciones de WhatsApp
+          Gestiona tus conversaciones de WhatsApp y mensajes programados
         </p>
       </div>
       
-      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-200px)]">
-        {/* Lista de conversaciones */}
-        <div className="col-span-4">
-          <Card className="h-full">
-            <div className="p-4 border-b space-y-4">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5 text-whatsapp-500" />
-                <h3 className="font-semibold">Conversaciones</h3>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <div className="flex-1">
-                  <InstanceSelector 
-                    value={selectedInstance} 
-                    onValueChange={setSelectedInstance} 
-                  />
+      <Tabs defaultValue="conversations" className="h-[calc(100vh-200px)]">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="conversations" className="flex items-center gap-2">
+            <MessageCircle className="h-4 w-4" />
+            Conversaciones
+          </TabsTrigger>
+          <TabsTrigger value="scheduled" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Mensajes Programados
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="conversations" className="h-full mt-6">
+          <div className="grid grid-cols-12 gap-6 h-full">
+            {/* Lista de conversaciones */}
+            <div className="col-span-4">
+              <Card className="h-full">
+                <div className="p-4 border-b space-y-4">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5 text-whatsapp-500" />
+                    <h3 className="font-semibold">Conversaciones</h3>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex-1">
+                      <InstanceSelector 
+                        value={selectedInstance} 
+                        onValueChange={setSelectedInstance} 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Filtro de búsqueda */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 text-muted-foreground transform -translate-y-1/2" />
+                    <Input
+                      placeholder="🔍 Buscar por nombre o número..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
-              </div>
-
-              {/* Filtro de búsqueda */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 text-muted-foreground transform -translate-y-1/2" />
-                <Input
-                  placeholder="🔍 Buscar por nombre o número..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                <ConversationList
+                  conversations={filteredConversations}
+                  selectedConversationId={selectedConversation?.id || null}
+                  onSelectConversation={handleSelectConversation}
+                  isLoading={isLoading}
                 />
-              </div>
+              </Card>
             </div>
-            <ConversationList
-              conversations={filteredConversations}
-              selectedConversationId={selectedConversation?.id || null}
-              onSelectConversation={handleSelectConversation}
-              isLoading={isLoading}
-            />
-          </Card>
-        </div>
 
-        {/* Área de chat */}
-        <div className="col-span-8">
-          <Card className="h-full flex flex-col">
-            <ChatArea conversation={selectedConversation} />
-          </Card>
-        </div>
-      </div>
+            {/* Área de chat */}
+            <div className="col-span-8">
+              <Card className="h-full flex flex-col">
+                <ChatArea conversation={selectedConversation} />
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="scheduled" className="h-full mt-6">
+          <ScheduledMessagesTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
