@@ -16,14 +16,14 @@ export const useLeads = () => {
   } = useQuery({
     queryKey: ['leads'],
     queryFn: async (): Promise<Lead[]> => {
-      console.log('Fetching leads...');
+      console.log('Fetching leads for user:', user?.id);
       
       if (!user) {
         console.log('No user found, returning empty leads array');
         return [];
       }
 
-      // Primero obtener las instancias del usuario
+      // Primero obtener las instancias del usuario logueado
       const { data: userInstances, error: instancesError } = await supabase
         .from('whatsapp_connections')
         .select('name')
@@ -35,33 +35,45 @@ export const useLeads = () => {
       }
 
       const instanceNames = userInstances?.map(instance => instance.name) || [];
-      console.log('User instances:', instanceNames);
+      console.log('User WhatsApp instances:', instanceNames);
 
-      // Obtener TODOS los leads del usuario (tanto los creados directamente como los de sus instancias)
-      const { data, error } = await supabase
+      // Construir la consulta para obtener leads
+      let query = supabase
         .from('leads')
         .select('*')
-        .eq('user_id', user.id)
         .order('position', { ascending: true });
+
+      // Aplicar filtros: leads del usuario O leads de sus instancias
+      if (instanceNames.length > 0) {
+        // Obtener leads que:
+        // 1. Pertenecen al usuario (user_id = user.id)
+        // 2. O tienen una instancia que pertenece al usuario
+        query = query.or(`user_id.eq.${user.id},instancia.in.(${instanceNames.join(',')})`);
+      } else {
+        // Si no tiene instancias, solo mostrar leads creados por el usuario directamente
+        query = query.eq('user_id', user.id);
+      }
+
+      console.log('Executing query with instances:', instanceNames);
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching leads:', error);
         throw error;
       }
 
-      console.log('All user leads fetched:', data);
+      console.log('Raw leads data:', data);
 
-      // Filtrar en el cliente para incluir:
-      // 1. Leads sin instancia (creados directamente por el usuario)
-      // 2. Leads cuya instancia pertenece al usuario
-      const filteredLeads = data?.filter(lead => 
-        !lead.instancia || instanceNames.includes(lead.instancia)
+      // Filtrar duplicados en caso de que un lead aparezca por ambas condiciones
+      const uniqueLeads = data?.filter((lead, index, self) => 
+        index === self.findIndex(l => l.id === lead.id)
       ) || [];
 
-      console.log('Filtered leads for user:', filteredLeads);
+      console.log('Unique leads for user:', uniqueLeads);
 
       // If there are leads without column_id, assign them to the default column
-      const leadsWithoutColumn = filteredLeads.filter(lead => !lead.column_id) || [];
+      const leadsWithoutColumn = uniqueLeads.filter(lead => !lead.column_id) || [];
       
       if (leadsWithoutColumn.length > 0 && user) {
         console.log('Found leads without column_id, assigning to default column...');
@@ -88,7 +100,7 @@ export const useLeads = () => {
           } else {
             console.log('Successfully assigned leads to default column');
             // Update the data with the new column_id
-            filteredLeads.forEach(lead => {
+            uniqueLeads.forEach(lead => {
               if (!lead.column_id) {
                 lead.column_id = defaultColumn.id;
               }
@@ -97,7 +109,7 @@ export const useLeads = () => {
         }
       }
 
-      return filteredLeads;
+      return uniqueLeads;
     },
     enabled: !!user
   });
