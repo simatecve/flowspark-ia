@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,7 +8,7 @@ import type { Message, CreateMessageData, SendMessageToConversationData } from '
 // Función para determinar el tipo de mensaje basado en la URL del attachment
 const getMessageTypeFromUrl = (attachmentUrl?: string, providedType?: string): string => {
   if (providedType) return providedType;
-  if (!attachmentUrl) return 'text';
+  if (!attachmentUrl) return 'conversation'; // Cambio de 'text' a 'conversation' para mensajes normales
   
   const url = attachmentUrl.toLowerCase();
   
@@ -29,7 +28,7 @@ const getMessageTypeFromUrl = (attachmentUrl?: string, providedType?: string): s
     return 'document';
   }
   
-  return 'text';
+  return 'conversation'; // Por defecto usar 'conversation' en lugar de 'text'
 };
 
 export const useMessages = (conversationId: string | null) => {

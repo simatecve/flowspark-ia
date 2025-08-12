@@ -47,7 +47,7 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
 
     const isBase64 = isBase64Data(message.attachment_url);
     const mediaUrl = isBase64 
-      ? getDataUrl(message.attachment_url, message.message_type || 'text')
+      ? getDataUrl(message.attachment_url, message.message_type || 'conversation')
       : message.attachment_url;
 
     switch (message.message_type) {
@@ -151,8 +151,10 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
             </Button>
           </div>
         );
+      case 'text':
+      case 'conversation':
       default:
-        return null;
+        return null; // Los mensajes de texto se muestran en el contenido del mensaje
     }
   };
 
