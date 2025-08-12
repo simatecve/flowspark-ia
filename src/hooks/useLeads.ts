@@ -37,35 +37,31 @@ export const useLeads = () => {
       const instanceNames = userInstances?.map(instance => instance.name) || [];
       console.log('User instances:', instanceNames);
 
-      // Construir la consulta para obtener leads del usuario
-      let query = supabase
+      // Obtener TODOS los leads del usuario (tanto los creados directamente como los de sus instancias)
+      const { data, error } = await supabase
         .from('leads')
         .select('*')
         .eq('user_id', user.id)
         .order('position', { ascending: true });
-
-      // Aplicar filtro de instancias
-      if (instanceNames.length > 0) {
-        // Incluir leads de las instancias del usuario O leads sin instancia (creados directamente)
-        query = query.or(`instancia.in.(${instanceNames.map(name => `"${name}"`).join(',')}),instancia.is.null`);
-      } else {
-        // Si no tiene instancias, solo mostrar leads creados directamente (sin instancia)
-        query = query.is('instancia', null);
-      }
-
-      console.log('Executing query for user:', user.id, 'with instances:', instanceNames);
-
-      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching leads:', error);
         throw error;
       }
 
-      console.log('Leads fetched:', data);
+      console.log('All user leads fetched:', data);
+
+      // Filtrar en el cliente para incluir:
+      // 1. Leads sin instancia (creados directamente por el usuario)
+      // 2. Leads cuya instancia pertenece al usuario
+      const filteredLeads = data?.filter(lead => 
+        !lead.instancia || instanceNames.includes(lead.instancia)
+      ) || [];
+
+      console.log('Filtered leads for user:', filteredLeads);
 
       // If there are leads without column_id, assign them to the default column
-      const leadsWithoutColumn = data?.filter(lead => !lead.column_id) || [];
+      const leadsWithoutColumn = filteredLeads.filter(lead => !lead.column_id) || [];
       
       if (leadsWithoutColumn.length > 0 && user) {
         console.log('Found leads without column_id, assigning to default column...');
@@ -92,7 +88,7 @@ export const useLeads = () => {
           } else {
             console.log('Successfully assigned leads to default column');
             // Update the data with the new column_id
-            data?.forEach(lead => {
+            filteredLeads.forEach(lead => {
               if (!lead.column_id) {
                 lead.column_id = defaultColumn.id;
               }
@@ -101,7 +97,7 @@ export const useLeads = () => {
         }
       }
 
-      return data || [];
+      return filteredLeads;
     },
     enabled: !!user
   });
