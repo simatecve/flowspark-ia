@@ -19,7 +19,7 @@ interface LeadColumnSelectorProps {
 
 export const LeadColumnSelector = ({ phoneNumber, pushname }: LeadColumnSelectorProps) => {
   const { columns } = useLeadColumns();
-  const { createLead, leads } = useLeads();
+  const { createLead, updateLead, leads } = useLeads();
   const { toast } = useToast();
 
   // Buscar si ya existe un lead para este número
@@ -27,49 +27,58 @@ export const LeadColumnSelector = ({ phoneNumber, pushname }: LeadColumnSelector
 
   const handleAssignToColumn = async (columnId: string, columnName: string) => {
     if (existingLead) {
-      toast({
-        title: "Lead ya existe",
-        description: `Este contacto ya está asignado como lead.`,
-      });
-      return;
-    }
+      // Si ya existe un lead, lo movemos a la nueva columna
+      try {
+        await updateLead({
+          id: existingLead.id,
+          column_id: columnId,
+        });
 
-    try {
-      await createLead({
-        column_id: columnId,
-        name: pushname || phoneNumber,
-        phone: phoneNumber,
-      });
+        toast({
+          title: "Lead movido",
+          description: `El lead ha sido movido a la columna "${columnName}".`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo mover el lead.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      // Si no existe, creamos un nuevo lead
+      try {
+        await createLead({
+          column_id: columnId,
+          name: pushname || phoneNumber,
+          phone: phoneNumber,
+        });
 
-      toast({
-        title: "Lead creado",
-        description: `El contacto ha sido asignado a la columna "${columnName}".`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo crear el lead.",
-        variant: "destructive",
-      });
+        toast({
+          title: "Lead creado",
+          description: `El contacto ha sido asignado a la columna "${columnName}".`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo crear el lead.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  if (existingLead) {
-    const column = columns.find(col => col.id === existingLead.column_id);
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Users className="h-4 w-4" />
-        <span>Lead en: {column?.name || 'Sin columna'}</span>
-      </div>
-    );
-  }
+  const currentColumn = existingLead ? columns.find(col => col.id === existingLead.column_id) : null;
+  const buttonText = existingLead 
+    ? `Lead en: ${currentColumn?.name || 'Sin columna'}` 
+    : 'Asignar a Lead';
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="h-8">
           <Users className="h-4 w-4 mr-2" />
-          Asignar a Lead
+          {buttonText}
           <ChevronDown className="h-4 w-4 ml-2" />
         </Button>
       </DropdownMenuTrigger>
@@ -78,6 +87,7 @@ export const LeadColumnSelector = ({ phoneNumber, pushname }: LeadColumnSelector
           <DropdownMenuItem
             key={column.id}
             onClick={() => handleAssignToColumn(column.id, column.name)}
+            className={currentColumn?.id === column.id ? "bg-accent" : ""}
           >
             <div className="flex items-center gap-2">
               <div 
@@ -85,6 +95,9 @@ export const LeadColumnSelector = ({ phoneNumber, pushname }: LeadColumnSelector
                 style={{ backgroundColor: column.color }}
               />
               {column.name}
+              {currentColumn?.id === column.id && (
+                <span className="ml-auto text-xs text-muted-foreground">Actual</span>
+              )}
             </div>
           </DropdownMenuItem>
         ))}
