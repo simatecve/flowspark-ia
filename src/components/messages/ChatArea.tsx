@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { MessageInput } from './MessageInput';
 import { MessageBubble } from './MessageBubble';
+import { LeadColumnSelector } from './LeadColumnSelector';
 import { useMessages } from '@/hooks/useMessages';
 import { useConversations } from '@/hooks/useConversations';
 import type { Conversation } from '@/types/messages';
@@ -58,26 +59,34 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
     <div className="flex flex-col h-full">
       {/* Header de la conversación - fijo en la parte superior */}
       <div className="flex-shrink-0 border-b p-4 bg-background sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-whatsapp-500 text-white">
-              {conversation.pushname?.charAt(0).toUpperCase() || 
-               conversation.whatsapp_number.slice(-2)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="font-semibold">
-              {conversation.pushname || conversation.whatsapp_number}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {conversation.whatsapp_number}
-              {!conversation.user_id && (
-                <span className="ml-2 text-xs bg-accent px-2 py-1 rounded">
-                  Público
-                </span>
-              )}
-            </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="bg-whatsapp-500 text-white">
+                {conversation.pushname?.charAt(0).toUpperCase() || 
+                 conversation.whatsapp_number.slice(-2)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="font-semibold">
+                {conversation.pushname || conversation.whatsapp_number}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {conversation.whatsapp_number}
+                {!conversation.user_id && (
+                  <span className="ml-2 text-xs bg-accent px-2 py-1 rounded">
+                    Público
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
+          
+          {/* Selector de columna de leads */}
+          <LeadColumnSelector 
+            phoneNumber={conversation.whatsapp_number}
+            pushname={conversation.pushname}
+          />
         </div>
       </div>
 

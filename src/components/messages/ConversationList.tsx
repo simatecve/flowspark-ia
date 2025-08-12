@@ -50,8 +50,8 @@ export const ConversationList = ({
             className={`
               p-3 rounded-lg cursor-pointer border transition-colors
               ${selectedConversationId === conversation.id 
-                ? 'bg-accent border-accent' 
-                : 'hover:bg-muted/50 border-transparent'
+                ? 'bg-muted border-muted text-foreground' 
+                : 'hover:bg-muted/50 border-transparent hover:text-foreground'
               }
             `}
             onClick={() => onSelectConversation(conversation)}

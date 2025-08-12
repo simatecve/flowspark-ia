@@ -1,15 +1,35 @@
 
 import React from 'react';
-import { MessageSquare, Bell, Settings } from 'lucide-react';
+import { MessageSquare, Bell, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const { toast } = useToast();
 
   const handleSettingsClick = () => {
     navigate('/settings');
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo cerrar la sesión.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -37,6 +57,16 @@ const Navbar = () => {
         {/* Botón de configuración */}
         <Button variant="ghost" size="icon" onClick={handleSettingsClick}>
           <Settings className="h-4 w-4" />
+        </Button>
+
+        {/* Botón de cerrar sesión */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleSignOut}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          <LogOut className="h-4 w-4" />
         </Button>
       </div>
     </div>

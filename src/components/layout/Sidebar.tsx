@@ -14,7 +14,8 @@ import {
   Smartphone,
   TrendingUp,
   Key,
-  CreditCard
+  CreditCard,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface SidebarProps {
   currentPage: string;
@@ -39,8 +41,9 @@ interface UserProfile {
 const Sidebar = ({ currentPage, onPageChange, collapsed, onToggleCollapsed }: SidebarProps) => {
   const [userProfile, setUserProfile] = useState<UserProfile>({});
   const [planName, setPlanName] = useState<string>('Plan Pro');
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -90,6 +93,22 @@ const Sidebar = ({ currentPage, onPageChange, collapsed, onToggleCollapsed }: Si
     const route = pageToRouteMap[pageId];
     if (route) {
       navigate(route);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo cerrar la sesión.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -275,28 +294,47 @@ const Sidebar = ({ currentPage, onPageChange, collapsed, onToggleCollapsed }: Si
           ))}
         </nav>
 
-        {/* User info at bottom */}
-        <div className="border-t p-4 mt-auto">
+        {/* User info and logout at bottom */}
+        <div className="border-t p-4 mt-auto space-y-2">
           {collapsed ? (
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center space-y-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-500 text-white text-xs">
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSignOut}
+                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="h-3 w-3" />
+              </Button>
             </div>
           ) : (
-            <div className="flex items-center space-x-3">
-              <Avatar className="h-10 w-10 flex-shrink-0">
-                <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-500 text-white">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{getDisplayName()}</p>
-                <p className="text-xs text-muted-foreground truncate">{planName}</p>
+            <>
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-10 w-10 flex-shrink-0">
+                  <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-500 text-white">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{getDisplayName()}</p>
+                  <p className="text-xs text-muted-foreground truncate">{planName}</p>
+                </div>
               </div>
-            </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignOut}
+                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Cerrar Sesión
+              </Button>
+            </>
           )}
         </div>
       </div>

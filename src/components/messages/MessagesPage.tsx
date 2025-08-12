@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, Filter } from 'lucide-react';
+import { MessageCircle, Filter, Search } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { ConversationList } from './ConversationList';
 import { ChatArea } from './ChatArea';
 import { InstanceSelector } from './InstanceSelector';
@@ -12,6 +13,7 @@ import type { Conversation } from '@/types/messages';
 
 export const MessagesPage = () => {
   const [selectedInstance, setSelectedInstance] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const instanceName = selectedInstance === 'all' ? undefined : selectedInstance;
   
   const { conversations, isLoading } = useConversations(instanceName);
@@ -74,6 +76,17 @@ export const MessagesPage = () => {
     setSelectedConversation(conversation);
   };
 
+  // Filtrar conversaciones por término de búsqueda
+  const filteredConversations = conversations.filter(conversation => {
+    if (!searchTerm.trim()) return true;
+    
+    const term = searchTerm.toLowerCase();
+    const nameMatch = conversation.pushname?.toLowerCase().includes(term) || false;
+    const numberMatch = conversation.whatsapp_number.toLowerCase().includes(term);
+    
+    return nameMatch || numberMatch;
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -102,9 +115,20 @@ export const MessagesPage = () => {
                   />
                 </div>
               </div>
+
+              {/* Filtro de búsqueda */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 text-muted-foreground transform -translate-y-1/2" />
+                <Input
+                  placeholder="🔍 Buscar por nombre o número..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
             <ConversationList
-              conversations={conversations}
+              conversations={filteredConversations}
               selectedConversationId={selectedConversation?.id || null}
               onSelectConversation={handleSelectConversation}
               isLoading={isLoading}
