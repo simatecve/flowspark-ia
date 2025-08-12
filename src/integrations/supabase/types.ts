@@ -474,6 +474,84 @@ export type Database = {
           },
         ]
       }
+      quick_replies: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          shortcut: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          shortcut?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          shortcut?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scheduled_messages: {
+        Row: {
+          attachment_url: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          instance_name: string
+          message: string
+          pushname: string | null
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          instance_name: string
+          message: string
+          pushname?: string | null
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          whatsapp_number: string
+        }
+        Update: {
+          attachment_url?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          instance_name?: string
+          message?: string
+          pushname?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           created_at: string

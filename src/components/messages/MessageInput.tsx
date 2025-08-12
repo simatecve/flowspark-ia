@@ -1,114 +1,92 @@
 
-import React, { useState } from 'react';
-import { Send, Smile, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Send, Paperclip } from 'lucide-react';
 import { FileUploadButton } from './FileUploadButton';
-
-// Dynamic import for emoji picker to avoid build issues
-const EmojiPicker = React.lazy(() => 
-  import('@emoji-mart/react').then(module => ({ default: module.default }))
-);
+import { QuickRepliesManager } from './QuickRepliesManager';
+import { ScheduleMessageModal } from './ScheduleMessageModal';
 
 interface MessageInputProps {
-  onSendMessage: (message: string, attachment?: string) => void;
+  value: string;
+  onChange: (value: string) => void;
+  onSend: () => void;
+  onFileUpload: (url: string, fileName: string) => void;
+  instanceName: string;
+  whatsappNumber: string;
+  pushname?: string;
   disabled?: boolean;
 }
 
-export const MessageInput = ({ onSendMessage, disabled }: MessageInputProps) => {
-  const [message, setMessage] = useState('');
-  const [attachmentUrl, setAttachmentUrl] = useState('');
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+export const MessageInput = ({
+  value,
+  onChange,
+  onSend,
+  onFileUpload,
+  instanceName,
+  whatsappNumber,
+  pushname,
+  disabled = false
+}: MessageInputProps) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSend = () => {
-    if (!message.trim() && !attachmentUrl) return;
-    
-    onSendMessage(message.trim(), attachmentUrl || undefined);
-    setMessage('');
-    setAttachmentUrl('');
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      if (value.trim() && !disabled) {
+        onSend();
+      }
     }
   };
 
-  const onEmojiSelect = (emoji: any) => {
-    setMessage(prev => prev + emoji.native);
-    setShowEmojiPicker(false);
-  };
-
-  const handleFileUploaded = (url: string) => {
-    setAttachmentUrl(url);
-  };
-
-  const removeAttachment = () => {
-    setAttachmentUrl('');
+  const handleQuickReplySelect = (message: string) => {
+    onChange(message);
+    // Focus the textarea after selecting a quick reply
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 100);
   };
 
   return (
     <div className="border-t bg-background p-4">
-      {attachmentUrl && (
-        <div className="mb-2 p-2 bg-muted rounded-lg">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">Archivo adjunto:</p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={removeAttachment}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-          <p className="text-sm truncate">{attachmentUrl.split('/').pop()}</p>
-        </div>
-      )}
-      
-      <div className="flex items-end space-x-2">
-        <div className="flex space-x-1">
-          <FileUploadButton
-            onFileUploaded={handleFileUploaded}
-            disabled={disabled}
-          />
+      {/* Quick replies and schedule message buttons */}
+      <div className="mb-3 flex gap-2">
+        <QuickRepliesManager onSelectReply={handleQuickReplySelect} />
+        <ScheduleMessageModal 
+          instanceName={instanceName}
+          whatsappNumber={whatsappNumber}
+          pushname={pushname}
+        />
+      </div>
 
-          <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={disabled}>
-                <Smile className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <React.Suspense fallback={<div className="p-4">Cargando emojis...</div>}>
-                <EmojiPicker
-                  onEmojiSelect={onEmojiSelect}
-                  locale="es"
-                  theme="light"
-                />
-              </React.Suspense>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="flex-1">
+      {/* Message input area */}
+      <div className="flex gap-2 items-end">
+        <div className="flex-1 relative">
           <Textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyPress={handleKeyPress}
             placeholder="Escribe un mensaje..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
+            className="min-h-[60px] max-h-32 resize-none pr-12"
             disabled={disabled}
-            className="min-h-[40px] max-h-32 resize-none"
           />
+          
+          {/* File upload button */}
+          <div className="absolute bottom-2 right-2">
+            <FileUploadButton 
+              onFileUpload={onFileUpload}
+              disabled={disabled}
+            />
+          </div>
         </div>
-
-        <Button 
-          onClick={handleSend}
-          disabled={disabled || (!message.trim() && !attachmentUrl)}
+        
+        {/* Send button */}
+        <Button
+          onClick={onSend}
+          disabled={!value.trim() || disabled}
           size="icon"
-          className="bg-whatsapp-500 hover:bg-whatsapp-600"
+          className="h-[60px] w-12"
         >
           <Send className="h-4 w-4" />
         </Button>
