@@ -21,6 +21,7 @@ export interface Lead {
   value?: number;
   notes?: string;
   position: number;
+  instancia?: string;
   created_at: string;
   updated_at: string;
 }
