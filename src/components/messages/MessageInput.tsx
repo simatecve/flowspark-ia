@@ -50,7 +50,7 @@ export const MessageInput = ({ onSendMessage, disabled }: MessageInputProps) => 
   };
 
   return (
-    <div className="border-t bg-background p-4">
+    <div className="sticky bottom-0 border-t bg-background p-4 z-10">
       {attachmentUrl && (
         <div className="mb-2 p-2 bg-muted rounded-lg">
           <div className="flex items-center justify-between">

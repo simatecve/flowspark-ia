@@ -55,9 +55,9 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       {/* Header de la conversación - fijo en la parte superior */}
-      <div className="flex-shrink-0 border-b p-4 bg-background">
+      <div className="flex-shrink-0 border-b p-4 bg-background sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-whatsapp-500 text-white">
@@ -81,8 +81,8 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
         </div>
       </div>
 
-      {/* Área de mensajes - con scroll independiente */}
-      <div className="flex-1 overflow-hidden">
+      {/* Área de mensajes - con scroll independiente, considerando espacio para input fijo */}
+      <div className="flex-1 overflow-hidden pb-24">
         <ScrollArea className="h-full">
           <div className="p-4">
             {isLoading ? (
@@ -109,8 +109,8 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
         </ScrollArea>
       </div>
 
-      {/* Input para escribir mensajes - fijo en la parte inferior */}
-      <div className="flex-shrink-0">
+      {/* Input para escribir mensajes - posición absoluta fija en la parte inferior */}
+      <div className="absolute bottom-0 left-0 right-0">
         <MessageInput 
           onSendMessage={handleSendMessage}
           disabled={isSending}
