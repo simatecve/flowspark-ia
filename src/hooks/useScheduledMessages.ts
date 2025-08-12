@@ -77,11 +77,43 @@ export const useScheduledMessages = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduledMessages'] });
+      toast({
+        title: "Mensaje actualizado",
+        description: "El mensaje programado ha sido actualizado exitosamente.",
+      });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
         description: "No se pudo actualizar el mensaje programado.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cancelScheduledMessageMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { data: result, error } = await supabase
+        .from('scheduled_messages')
+        .update({ status: 'cancelled' })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scheduledMessages'] });
+      toast({
+        title: "Mensaje cancelado",
+        description: "El mensaje programado ha sido cancelado exitosamente.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "No se pudo cancelar el mensaje programado.",
         variant: "destructive",
       });
     },
@@ -99,14 +131,14 @@ export const useScheduledMessages = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduledMessages'] });
       toast({
-        title: "Mensaje cancelado",
-        description: "El mensaje programado ha sido cancelado.",
+        title: "Mensaje eliminado",
+        description: "El mensaje programado ha sido eliminado exitosamente.",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: "No se pudo cancelar el mensaje programado.",
+        description: "No se pudo eliminar el mensaje programado.",
         variant: "destructive",
       });
     },
@@ -117,9 +149,11 @@ export const useScheduledMessages = () => {
     isLoading,
     createScheduledMessage: createScheduledMessageMutation.mutate,
     updateScheduledMessage: updateScheduledMessageMutation.mutate,
+    cancelScheduledMessage: cancelScheduledMessageMutation.mutate,
     deleteScheduledMessage: deleteScheduledMessageMutation.mutate,
     isCreating: createScheduledMessageMutation.isPending,
     isUpdating: updateScheduledMessageMutation.isPending,
+    isCancelling: cancelScheduledMessageMutation.isPending,
     isDeleting: deleteScheduledMessageMutation.isPending,
   };
 };

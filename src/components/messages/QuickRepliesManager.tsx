@@ -2,14 +2,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Plus, Edit2, Trash2, ChevronDown } from 'lucide-react';
 import { useQuickReplies } from '@/hooks/useQuickReplies';
+import { QuickReplyForm } from './QuickReplyForm';
 import type { QuickReply } from '@/types/quickReplies';
 
 interface QuickRepliesManagerProps {
@@ -17,105 +15,50 @@ interface QuickRepliesManagerProps {
 }
 
 export const QuickRepliesManager = ({ onSelectReply }: QuickRepliesManagerProps) => {
-  const { quickReplies, createQuickReply, updateQuickReply, deleteQuickReply, isLoading } = useQuickReplies();
+  const { 
+    quickReplies, 
+    createQuickReply, 
+    updateQuickReply, 
+    deleteQuickReply, 
+    isLoading,
+    isCreating,
+    isUpdating
+  } = useQuickReplies();
+  
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isManageOpen, setIsManageOpen] = useState(false);
   const [editingReply, setEditingReply] = useState<QuickReply | null>(null);
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
-  const [shortcut, setShortcut] = useState('');
 
-  const handleCreate = () => {
-    if (!title.trim() || !message.trim()) return;
-
-    createQuickReply({
-      title: title.trim(),
-      message: message.trim(),
-      shortcut: shortcut.trim() || undefined,
-    });
-
-    setTitle('');
-    setMessage('');
-    setShortcut('');
+  const handleCreateSubmit = (data: { title: string; message: string; shortcut?: string }) => {
+    createQuickReply(data);
     setIsCreateOpen(false);
+  };
+
+  const handleUpdateSubmit = (data: { title: string; message: string; shortcut?: string }) => {
+    if (!editingReply) return;
+    
+    updateQuickReply({
+      id: editingReply.id,
+      ...data,
+    });
+    setEditingReply(null);
   };
 
   const handleEdit = (reply: QuickReply) => {
     setEditingReply(reply);
-    setTitle(reply.title);
-    setMessage(reply.message);
-    setShortcut(reply.shortcut || '');
-  };
-
-  const handleUpdate = () => {
-    if (!editingReply || !title.trim() || !message.trim()) return;
-
-    updateQuickReply({
-      id: editingReply.id,
-      title: title.trim(),
-      message: message.trim(),
-      shortcut: shortcut.trim() || undefined,
-    });
-
-    setEditingReply(null);
-    setTitle('');
-    setMessage('');
-    setShortcut('');
   };
 
   const handleDelete = (id: string) => {
     deleteQuickReply(id);
   };
 
-  const ReplyForm = () => (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="title">Título</Label>
-        <Input
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Ej: Saludo inicial"
-        />
-      </div>
-      <div>
-        <Label htmlFor="shortcut">Atajo (opcional)</Label>
-        <Input
-          id="shortcut"
-          value={shortcut}
-          onChange={(e) => setShortcut(e.target.value)}
-          placeholder="Ej: /saludo"
-        />
-      </div>
-      <div>
-        <Label htmlFor="message">Mensaje</Label>
-        <Textarea
-          id="message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Escribe tu mensaje aquí..."
-          rows={4}
-        />
-      </div>
-      <div className="flex gap-2 justify-end">
-        <Button 
-          variant="outline" 
-          onClick={() => {
-            setEditingReply(null);
-            setTitle('');
-            setMessage('');
-            setShortcut('');
-            setIsCreateOpen(false);
-          }}
-        >
-          Cancelar
-        </Button>
-        <Button onClick={editingReply ? handleUpdate : handleCreate}>
-          {editingReply ? 'Actualizar' : 'Crear'}
-        </Button>
-      </div>
-    </div>
-  );
+  const handleCancelEdit = () => {
+    setEditingReply(null);
+  };
+
+  const handleCancelCreate = () => {
+    setIsCreateOpen(false);
+  };
 
   return (
     <div className="flex gap-2">
@@ -178,7 +121,11 @@ export const QuickRepliesManager = ({ onSelectReply }: QuickRepliesManagerProps)
           <DialogHeader>
             <DialogTitle>Nueva respuesta rápida</DialogTitle>
           </DialogHeader>
-          <ReplyForm />
+          <QuickReplyForm
+            onSubmit={handleCreateSubmit}
+            onCancel={handleCancelCreate}
+            isSubmitting={isCreating}
+          />
         </DialogContent>
       </Dialog>
 
@@ -192,7 +139,12 @@ export const QuickRepliesManager = ({ onSelectReply }: QuickRepliesManagerProps)
           {editingReply ? (
             <div>
               <h3 className="text-lg font-medium mb-4">Editar respuesta</h3>
-              <ReplyForm />
+              <QuickReplyForm
+                editingReply={editingReply}
+                onSubmit={handleUpdateSubmit}
+                onCancel={handleCancelEdit}
+                isSubmitting={isUpdating}
+              />
             </div>
           ) : (
             <div className="space-y-4">
