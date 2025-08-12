@@ -18,7 +18,7 @@ interface LeadColumnSelectorProps {
 }
 
 export const LeadColumnSelector = ({ phoneNumber, pushname }: LeadColumnSelectorProps) => {
-  const { leadColumns } = useLeadColumns();
+  const { columns } = useLeadColumns();
   const { createLead, leads } = useLeads();
   const { toast } = useToast();
 
@@ -55,7 +55,7 @@ export const LeadColumnSelector = ({ phoneNumber, pushname }: LeadColumnSelector
   };
 
   if (existingLead) {
-    const column = leadColumns.find(col => col.id === existingLead.column_id);
+    const column = columns.find(col => col.id === existingLead.column_id);
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Users className="h-4 w-4" />
@@ -74,7 +74,7 @@ export const LeadColumnSelector = ({ phoneNumber, pushname }: LeadColumnSelector
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        {leadColumns.map((column) => (
+        {columns.map((column) => (
           <DropdownMenuItem
             key={column.id}
             onClick={() => handleAssignToColumn(column.id, column.name)}
