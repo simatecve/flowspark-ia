@@ -56,8 +56,8 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header de la conversación */}
-      <div className="border-b p-4 bg-background">
+      {/* Header de la conversación - fijo en la parte superior */}
+      <div className="flex-shrink-0 border-b p-4 bg-background">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-whatsapp-500 text-white">
@@ -81,35 +81,41 @@ export const ChatArea = ({ conversation }: ChatAreaProps) => {
         </div>
       </div>
 
-      {/* Área de mensajes */}
-      <ScrollArea className="flex-1 p-4">
-        {isLoading ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      {/* Área de mensajes - con scroll independiente */}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full min-h-[200px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="flex justify-center items-center h-full min-h-[200px] text-center">
+                <div>
+                  <p className="text-muted-foreground">No hay mensajes</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Inicia una conversación enviando un mensaje
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {messages.map((message) => (
+                  <MessageBubble key={message.id} message={message} />
+                ))}
+              </div>
+            )}
           </div>
-        ) : messages.length === 0 ? (
-          <div className="flex justify-center items-center h-full text-center">
-            <div>
-              <p className="text-muted-foreground">No hay mensajes</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Inicia una conversación enviando un mensaje
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
-            ))}
-          </div>
-        )}
-      </ScrollArea>
+        </ScrollArea>
+      </div>
 
-      {/* Input para escribir mensajes */}
-      <MessageInput 
-        onSendMessage={handleSendMessage}
-        disabled={isSending}
-      />
+      {/* Input para escribir mensajes - fijo en la parte inferior */}
+      <div className="flex-shrink-0">
+        <MessageInput 
+          onSendMessage={handleSendMessage}
+          disabled={isSending}
+        />
+      </div>
     </div>
   );
 };
