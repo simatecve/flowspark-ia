@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { Mail, Phone, Building, DollarSign, MoreVertical, Edit, Trash2, User } from 'lucide-react';
+import { Mail, Phone, Building, DollarSign, MoreVertical, Edit, Trash2, User, Smartphone } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +62,15 @@ export const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
           </div>
 
           <div className="space-y-2">
+            {lead.instancia && (
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="outline" className="text-xs flex items-center gap-1">
+                  <Smartphone className="h-3 w-3" />
+                  {lead.instancia}
+                </Badge>
+              </div>
+            )}
+
             {lead.email && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Mail className="h-3 w-3" />

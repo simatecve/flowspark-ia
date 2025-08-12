@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -18,10 +17,39 @@ export const useLeads = () => {
     queryKey: ['leads'],
     queryFn: async (): Promise<Lead[]> => {
       console.log('Fetching leads...');
-      const { data, error } = await supabase
+      
+      if (!user) {
+        console.log('No user found, returning empty leads array');
+        return [];
+      }
+
+      // Primero obtener las instancias del usuario
+      const { data: userInstances, error: instancesError } = await supabase
+        .from('whatsapp_connections')
+        .select('name')
+        .eq('user_id', user.id);
+
+      if (instancesError) {
+        console.error('Error fetching user instances:', instancesError);
+        throw instancesError;
+      }
+
+      const instanceNames = userInstances?.map(instance => instance.name) || [];
+      console.log('User instances:', instanceNames);
+
+      // Obtener leads del usuario que pertenecen a sus instancias
+      let query = supabase
         .from('leads')
         .select('*')
+        .eq('user_id', user.id)
         .order('position', { ascending: true });
+
+      // Si hay instancias específicas, filtrar por ellas
+      if (instanceNames.length > 0) {
+        query = query.in('instancia', instanceNames);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching leads:', error);
@@ -68,7 +96,8 @@ export const useLeads = () => {
       }
 
       return data || [];
-    }
+    },
+    enabled: !!user
   });
 
   const createLeadMutation = useMutation({
