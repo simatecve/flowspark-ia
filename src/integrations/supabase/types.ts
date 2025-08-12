@@ -188,6 +188,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          instance_name: string | null
           last_message: string | null
           last_message_at: string | null
           pushname: string | null
@@ -199,6 +200,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          instance_name?: string | null
           last_message?: string | null
           last_message_at?: string | null
           pushname?: string | null
@@ -210,6 +212,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          instance_name?: string | null
           last_message?: string | null
           last_message_at?: string | null
           pushname?: string | null

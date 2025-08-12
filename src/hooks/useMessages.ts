@@ -19,20 +19,7 @@ export const useMessages = (conversationId: string | null) => {
       
       console.log('Fetching messages for conversation:', conversationId, 'user:', user?.id);
       
-      // Verificar que la conversación pertenece al usuario antes de obtener mensajes
-      const { data: conversation, error: convError } = await supabase
-        .from('conversations')
-        .select('user_id')
-        .eq('id', conversationId)
-        .eq('user_id', user.id)
-        .single();
-
-      if (convError || !conversation) {
-        console.error('Error verifying conversation ownership:', convError);
-        throw new Error('Access denied to this conversation');
-      }
-
-      // Obtener las instancias del usuario para verificar que los mensajes son válidos
+      // Obtener las instancias del usuario
       const { data: userConnections, error: connectionsError } = await supabase
         .from('whatsapp_connections')
         .select('name')
@@ -44,14 +31,26 @@ export const useMessages = (conversationId: string | null) => {
       }
 
       const userInstanceNames = userConnections?.map(conn => conn.name) || [];
+
+      // Verificar que la conversación pertenece a las instancias del usuario
+      const { data: conversation, error: convError } = await supabase
+        .from('conversations')
+        .select('instance_name')
+        .eq('id', conversationId)
+        .in('instance_name', userInstanceNames)
+        .single();
+
+      if (convError || !conversation) {
+        console.error('Error verifying conversation ownership:', convError);
+        throw new Error('Access denied to this conversation');
+      }
       
-      // Fetch messages - solo los de las instancias del usuario
+      // Fetch messages - filtrar por conversación y instancia del usuario
       const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .eq('user_id', user.id)
-        .in('instance_name', userInstanceNames)
+        .eq('instance_name', conversation.instance_name)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -59,7 +58,7 @@ export const useMessages = (conversationId: string | null) => {
         throw error;
       }
       
-      console.log('Fetched messages for user instances:', data);
+      console.log('Fetched messages for conversation:', data);
       return data as Message[];
     },
     enabled: !!conversationId && !!user,
@@ -72,51 +71,42 @@ export const useMessages = (conversationId: string | null) => {
       
       console.log('Sending message to conversation:', messageData);
 
-      // Verificar que la conversación pertenece al usuario
+      // Obtener las instancias del usuario
+      const { data: userConnections, error: connectionsError } = await supabase
+        .from('whatsapp_connections')
+        .select('name')
+        .eq('user_id', user.id);
+
+      if (connectionsError) {
+        console.error('Error fetching user connections:', connectionsError);
+        throw connectionsError;
+      }
+
+      const userInstanceNames = userConnections?.map(conn => conn.name) || [];
+
+      // Verificar que la conversación pertenece a las instancias del usuario
       const { data: conversationInfo, error: convError } = await supabase
         .from('conversations')
         .select(`
           whatsapp_number, 
           pushname, 
-          user_id
+          instance_name
         `)
         .eq('id', messageData.conversation_id)
-        .eq('user_id', user.id)
+        .in('instance_name', userInstanceNames)
         .single();
 
       if (convError || !conversationInfo) {
         throw new Error('Error obteniendo información de la conversación o acceso denegado');
       }
 
-      // Obtener el primer mensaje de la conversación para verificar la instancia
-      const { data: firstMessage, error: msgError } = await supabase
-        .from('messages')
-        .select('instance_name')
-        .eq('conversation_id', messageData.conversation_id)
-        .eq('user_id', user.id)
-        .limit(1)
-        .single();
-
-      if (msgError || !firstMessage) {
-        throw new Error('Error obteniendo el nombre de instancia');
-      }
-
       // Verificar que la instancia pertenece al usuario
-      const { data: userConnection, error: connectionError } = await supabase
-        .from('whatsapp_connections')
-        .select('name')
-        .eq('name', firstMessage.instance_name)
-        .eq('user_id', user.id)
-        .single();
-
-      if (connectionError || !userConnection) {
+      if (!userInstanceNames.includes(conversationInfo.instance_name)) {
         throw new Error('Instancia no válida o no pertenece al usuario');
       }
 
-      const instanceName = firstMessage.instance_name;
-
       const webhookSuccess = await sendWebhook({
-        instance_name: instanceName,
+        instance_name: conversationInfo.instance_name,
         whatsapp_number: conversationInfo.whatsapp_number,
         message: messageData.message,
         attachment_url: messageData.attachment_url,
@@ -129,7 +119,7 @@ export const useMessages = (conversationId: string | null) => {
       return {
         id: 'temp-' + Date.now(),
         conversation_id: messageData.conversation_id,
-        instance_name: instanceName,
+        instance_name: conversationInfo.instance_name,
         whatsapp_number: conversationInfo.whatsapp_number,
         pushname: conversationInfo.pushname,
         message: messageData.message,
